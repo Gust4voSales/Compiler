@@ -1,5 +1,9 @@
-abc while 
-func 
-x2 33 
-555 666
+x=2
+a?
+abc==while 
+func funcaoTeste( x == y) {
+    x2 33
+
+    555 666
+}
 4bw
