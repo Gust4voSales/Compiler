@@ -23,7 +23,7 @@ try:
   lexer.read_next_token(raw_code)
   # print(lexer)
 
-except CompilerException as e:
+except Exception as e:
   print(bcolors.FAIL + str(e) + bcolors.ENDC)
 
 print(lexer)

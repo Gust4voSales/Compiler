@@ -1,6 +1,7 @@
+;
 func funcaoTeste( (x==y) || (x=1) && (2)) {
     x2 33
 
     return 555+666 * a / 3
 }
-4bw
+?

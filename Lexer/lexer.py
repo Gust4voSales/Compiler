@@ -22,19 +22,21 @@ class Lexer:
     term = ''
     end_of_file = False
 
-
     while 1:
+      if (self.char_index == len(code)):
+        end_of_file = True
+        break
+
       char = code[self.char_index]
       term += char
       self.char_index += 1
-      print (state, char)      
+      print(f"state anterior: {state} - char '{char}'")
 
       # IGNORE CHAR
       if (char == ' ' or char == '\n'):
         term = term[:-1]
         break
-      
-   
+
       # setting current token state 
       match state:
         case None:
@@ -48,65 +50,55 @@ class Lexer:
           elif (char.isnumeric()):
             state = 'NUMERIC'
             continue
+          # don't do anything because it can be the start of a delimiter like "!= || &&"
+          elif (char == "!" or char == '|' or char == '&'): 
+            continue
+          else:
+            raise CompilerException(term, self.current_line)
         
         case 'ALPHA':
-          if (char.isalpha()):
-            print ('char ',char)
+          if (char.isalpha()):            
             continue
           elif (char.isnumeric()):
             state = 'ALPHANUM'
             continue
           elif (self.is_delimiter(char)):
             term = term[:-1]
-            self.char_index-=1
-            print ('char 2',char)
+            self.char_index-=1          
             break
+          else:
+            raise CompilerException(term, self.current_line)
         
         case 'ALPHANUM':
-          if (self.is_delimiter(char)):
+          if (char.isalnum()): continue
+          elif (self.is_delimiter(char)):
             term = term[:-1]
             self.char_index-=1
             break
-          continue
-
+          else:
+            raise CompilerException(term, self.current_line)
+            
         case 'NUMERIC':
-          if (char.isalpha()):
-            raise CompilerException(char, self.current_line)
-          elif (char.isnumeric()):
+          if (char.isnumeric()):
             continue
           elif (self.is_delimiter(char)):
             term = term[:-1]
             self.char_index-=1
             break
+          else:
+            raise CompilerException(term, self.current_line)
 
         case 'DELIMITER':
           if (not self.is_delimiter(term)):
             term = term[:-1]
             self.char_index-=1
-            break
+            break        
+    
+    if (state == None):
+      if (not (term == ' ' or term == '\n' or term=='' or term =='\t')):
+        raise CompilerException(term, self.current_line)
 
-      if (self.char_index == len(code)):
-        end_of_file = True
-        break
-
-    # CAN BE RESERVED KEY_WORD OR IDENTIFIER
-    if (state == 'ALPHA'):
-      keyword = False
-      for key_token, lexeme_value in RESERVED_KEYWORDS.items():
-        if (term == lexeme_value):
-          self.tokens.append(Token(token=key_token, lexeme=term, line=self.current_line))
-          keyword = True
-          break
-      if (not keyword):
-        self.tokens.append(Token(token='IDENTIFIER', lexeme=term, line=self.current_line))
-    # IDENTIFIER
-    elif (state == 'ALPHANUM'):
-      self.tokens.append(Token(token='IDENTIFIER', lexeme=term, line=self.current_line))
-    # NUMERIC
-    elif (state == 'NUMERIC'):
-      self.tokens.append(Token(token='NUMERIC', lexeme=term, line=self.current_line))
-    elif (state == 'DELIMITER'):
-      self.tokens.append(Token(token=self.is_delimiter(term), lexeme=term, line=self.current_line))
+    self.add_token_based_on_state(term, state)
 
     if (not end_of_file):
       # increment line
@@ -118,7 +110,26 @@ class Lexer:
   def run(self, code: str):
 
     return 
-    
+
+  def add_token_based_on_state(self, lexeme: str, state: str):
+     # CAN BE RESERVED KEY_WORD OR IDENTIFIER
+    if (state == 'ALPHA'):
+      keyword = False
+      for key_token, lexeme_value in RESERVED_KEYWORDS.items():
+        if (lexeme == lexeme_value):
+          self.tokens.append(Token(token=key_token, lexeme=lexeme, line=self.current_line))
+          keyword = True
+          break
+      if (not keyword):
+        self.tokens.append(Token(token='IDENTIFIER', lexeme=lexeme, line=self.current_line))
+    # IDENTIFIER
+    elif (state == 'ALPHANUM'):
+      self.tokens.append(Token(token='IDENTIFIER', lexeme=lexeme, line=self.current_line))
+    # NUMERIC
+    elif (state == 'NUMERIC'):
+      self.tokens.append(Token(token='NUMERIC', lexeme=lexeme, line=self.current_line))
+    elif (state == 'DELIMITER'):
+      self.tokens.append(Token(token=self.is_delimiter(lexeme), lexeme=lexeme, line=self.current_line))
 
   def __str__(self):
     str = '--------------\n'
