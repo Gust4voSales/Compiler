@@ -1,4 +1,5 @@
 from pickle import NONE
+from CompilerException import CompilerException
 from Lexer.delimiters import DELIMITERS
 from Token import Token
 from Lexer.reserverd_keywords import RESERVED_KEYWORDS
@@ -70,8 +71,7 @@ class Lexer:
 
         case 'NUMERIC':
           if (char.isalpha()):
-            print("ERROR")
-            return
+            raise CompilerException(char, self.current_line)
           elif (char.isnumeric()):
             continue
           elif (self.is_delimiter(char)):
@@ -88,10 +88,6 @@ class Lexer:
       if (self.char_index == len(code)):
         end_of_file = True
         break
-
-    # if (state==None):
-    #   print("Error")
-    #   return
 
     # CAN BE RESERVED KEY_WORD OR IDENTIFIER
     if (state == 'ALPHA'):
@@ -127,7 +123,7 @@ class Lexer:
   def __str__(self):
     str = '--------------\n'
     for token in self.tokens:
-      str += f'({token.token}: "{token.lexeme}" - {token.line}), '
+      str += f'({token.token}: "{token.lexeme}" - L{token.line}), '
     
     return str
 
