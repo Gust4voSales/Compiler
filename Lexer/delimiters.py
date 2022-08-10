@@ -5,7 +5,16 @@ DELIMITERS = {
     'OPEN_PARENTHESES': '(',
     'CLOSE_PARENTHESES': ')',
     'EQUALS_OP': '==',
-    'ASSIGNMENT_OP': '='
-
-
+    'ASSIGNMENT_OP': '=',
+    'NOT_EQUAL_OP': '!=',
+    'LESS_THAN_OP': '<',
+    'LESS_OR_EQ_OP': '<=',
+    'GREATER_THAN_OP': '>',
+    'GREATER_OR_EQ_OP': '>=',
+    'ADD': '+',
+    'LESS': '-',
+    'MULT': '*',
+    'DIV': '/',
+    'AND': '&&',
+    'OR': '||',
 }
