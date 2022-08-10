@@ -89,9 +89,9 @@ class Lexer:
         end_of_file = True
         break
 
-    if (state==None):
-      print("Error")
-      return
+    # if (state==None):
+    #   print("Error")
+    #   return
 
     # CAN BE RESERVED KEY_WORD OR IDENTIFIER
     if (state == 'ALPHA'):
@@ -122,40 +122,7 @@ class Lexer:
   def run(self, code: str):
 
     return 
-    for char in code:
-      if (char=='\n' ):
-        self.current_line += 1
-        print('pula linha')
-        continue
-
-      if (char==' '):
-        print('vazio')
-        continue
-      
-      if (char == ';'):
-        print(char)
-        self.tokens.append(Token(token='SEMICOLON', lexeme=char, line=self.current_line))
-        continue
-      
-      if (char=='{'):
-        print(char)
-        self.tokens.append(Token(token='OPEN_BRACKETS', lexeme=char, line=self.current_line))
-        continue
-
-      if (char=='}'):
-        print(char)
-        self.tokens.append(Token(token='CLOSE_BRACKETS', lexeme=char, line=self.current_line))
-        continue
     
-      if (char=='('):
-        print(char)
-        self.tokens.append(Token(token='OPEN_PARENTESES', lexeme=char, line=self.current_line))
-        continue
-
-      if (char==')'):
-        print(char)
-        self.tokens.append(Token(token='CLOSE_PARENTESES', lexeme=char, line=self.current_line))
-        continue
 
   def __str__(self):
     str = '--------------\n'
