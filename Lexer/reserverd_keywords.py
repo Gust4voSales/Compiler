@@ -12,7 +12,6 @@ RESERVED_KEYWORDS = {
   'BREAK': 'break',
   'CONTINUE': 'continue',
   'RETURN': 'return',
-
-
-
+  'TRUE': 'true',
+  'FALSE': 'false'
 }
