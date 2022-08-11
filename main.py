@@ -12,19 +12,24 @@ class bcolors:
   BOLD = '\033[1m'
   UNDERLINE = '\033[4m'
 
-lexer = Lexer()
-
 raw_code = ''
 
 with open('teste.txt', 'r') as f:
   raw_code = f.read()
 
 try:
-  lexer.read_next_token(raw_code)
+  lexer = Lexer(raw_code)
+
+  tokens, ids= lexer.run()
   # print(lexer)
 
 except Exception as e:
   print(bcolors.FAIL + str(e) + bcolors.ENDC)
 
-print(lexer)
+for token in tokens:
+  print(token)
+
+print('-------------------------------------')
+for id in ids:
+  print(id)
 

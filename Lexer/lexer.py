@@ -1,15 +1,18 @@
 from pickle import NONE
 from CompilerException import CompilerException
+from Identifier import Identifier
 from Lexer.delimiters import DELIMITERS
 from Token import Token
 from Lexer.reserverd_keywords import RESERVED_KEYWORDS
 
 
 class Lexer:
-  def __init__(self):
+  def __init__(self, code: str):
     self.tokens: list[Token] = []
+    self.ids_table: list[Identifier] = []
     self.char_index = 0
     self.current_line = 1
+    self.code = code
   
   def is_delimiter(self,char: str):
     for key_token, lexeme_value in DELIMITERS.items():
@@ -17,17 +20,17 @@ class Lexer:
         return key_token
     return None
 
-  def read_next_token(self, code: str):
+  def read_next_token(self):
     state = None
     term = ''
     end_of_file = False
 
     while 1:
-      if (self.char_index == len(code)):
+      if (self.char_index == len(self.code)):
         end_of_file = True
         break
 
-      char = code[self.char_index]
+      char = self.code[self.char_index]
       term += char
       self.char_index += 1
       print(f"state anterior: {state} - char '{char}'")
@@ -105,11 +108,11 @@ class Lexer:
       if (char == '\n'):
         self.current_line+= 1
 
-      self.read_next_token(code)
+      self.read_next_token()
 
-  def run(self, code: str):
-
-    return 
+  def run(self):
+    self.read_next_token()
+    return self.tokens, self.ids_table
 
   def add_token_based_on_state(self, lexeme: str, state: str):
      # CAN BE RESERVED KEY_WORD OR IDENTIFIER
@@ -122,20 +125,17 @@ class Lexer:
           break
       if (not keyword):
         self.tokens.append(Token(token='IDENTIFIER', lexeme=lexeme, line=self.current_line))
+        self.ids_table.append(Identifier(token='IDENTIFIER', lexeme=lexeme, line=self.current_line))
     # IDENTIFIER
     elif (state == 'ALPHANUM'):
       self.tokens.append(Token(token='IDENTIFIER', lexeme=lexeme, line=self.current_line))
+      self.ids_table.append(Identifier(token='IDENTIFIER', lexeme=lexeme, line=self.current_line))
     # NUMERIC
     elif (state == 'NUMERIC'):
       self.tokens.append(Token(token='NUMERIC', lexeme=lexeme, line=self.current_line))
     elif (state == 'DELIMITER'):
       self.tokens.append(Token(token=self.is_delimiter(lexeme), lexeme=lexeme, line=self.current_line))
 
-  def __str__(self):
-    str = '--------------\n'
-    for token in self.tokens:
-      str += f'({token.token}: "{token.lexeme}" - L{token.line}), '
-    
-    return str
+
 
 

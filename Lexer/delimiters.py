@@ -17,4 +17,5 @@ DELIMITERS = {
     'DIV': '/',
     'AND': '&&',
     'OR': '||',
+    'COMMA': ','
 }
