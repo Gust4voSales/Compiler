@@ -1,7 +1,14 @@
-;
-func funcaoTeste( (x==y) || (x=1) && (2)) {
-    x2 33
+ x * 22 * 33
+program programateste{
 
-    return 555+666 * a / 3
+    int x = 0;
+    int y = 0;
+    bool teste = true;
+
+    func int add(int x, int y){
+        if(teste) {
+            return x + y;
+        }
+
+    }
 }
-?

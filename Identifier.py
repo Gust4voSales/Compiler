@@ -1,9 +1,9 @@
-class Token:
+class Identifier:
   def __init__(self, token: str, lexeme: str, line: int):
     self.token = token
     self.lexeme = lexeme
     self.line = line
-
+  
   def __str__(self):
     str = '--------------\n'
    
