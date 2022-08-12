@@ -26,12 +26,12 @@ try:
   # print(lexer)
   parser = Parser(tokens, ids)
   
-  parser.expression()
-  parser.semicolon()
-  
+  # parser.var_declaration()
+  parser.var_attribution()
+  parser.var_attribution()
   # parser.expression()
   # parser.semicolon()
-
+  
 except LexerException as e:
   print('lexico')
   print(bcolors.FAIL + str(e) + bcolors.ENDC)

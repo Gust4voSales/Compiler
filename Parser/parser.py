@@ -27,7 +27,7 @@ class Parser:
             self.current_token_index -= 1
             return Token(token='EMPTY', lexeme='', line=0)
 
-    def is_variable(self, token: Token):
+    def is_identifier(self, token: Token):
         return token.token == 'IDENTIFIER'
     def is_boolean(self, token: Token):
         return (token.token == 'TRUE' or token.token == 'FALSE')
@@ -36,12 +36,17 @@ class Parser:
     def is_relation_op(self, token: Token):
         return (token.lexeme == '!=' or token.lexeme == '==' or token.lexeme == '<' or token.lexeme == '<=' or token.lexeme == '>' or token.lexeme == '>=')
 
-
     def semicolon(self): #ok
         token = self.read_token()
         if (not token.token == 'SEMICOLON'):
             raise ParserException(f"expressão inválida ao ler {self.tokens[self.current_token_index].lexeme}", self.tokens[self.current_token_index].line)
 
+    def identifier(self):
+        identifier = self.read_token() # read identifier
+        if (not self.is_identifier(identifier)):
+            raise ParserException(f"{identifier.lexeme} não é um nome de identificador válido", identifier.line)
+
+    # --------START EXPRESSION--------
     def factor(self): 
         token = self.read_token()  
 
@@ -50,10 +55,10 @@ class Parser:
             self.expression()
             token = self.read_token()  
             if (not (token.lexeme==')')):
-                raise ParserException("Faltou ')'", self.tokens[self.current_token_index].line)
+                raise ParserException("Faltou ')'", token.line)
         
-        elif (not (self.is_variable(token) or self.is_number(token) or self.is_boolean(token)) ):
-            raise ParserException('Faltou fator', self.tokens[self.current_token_index].line)
+        elif (not (self.is_identifier(token) or self.is_number(token) or self.is_boolean(token)) ):
+            raise ParserException('Faltou fator', token.line)
         
     def term(self): # ok ?
         self.factor()
@@ -83,6 +88,34 @@ class Parser:
         if (self.is_relation_op(self.look_ahead())):
             self.read_token() # read relational op
             self.expression()
+
+    # --------END EXPRESSION--------
+    
+    # --------START VARIABLES--------
+    def type(self): # ok
+        token = self.read_token()
+        if (not (token.token == 'INT_TYPE' or token.token == 'BOOL_TYPE')):
+            raise ParserException(f"Tipo {token.lexeme} inválido", token.line)
+
+    def var_declaration(self): # ok
+        self.type()
+        self.identifier()
+
+        while (self.look_ahead().lexeme==','):
+            self.read_token() # read ,
+            self.identifier()
+
+        self.semicolon()
+
+    def var_attribution(self):
+        self.identifier()
         
-       
-           
+        assign_op = self.read_token() # read =
+        if (not (assign_op.token == 'ASSIGNMENT_OP')):
+            raise ParserException(f"Atribuição inválida: {assign_op.lexeme}", assign_op.line)
+        
+        self.expression()
+
+        self.semicolon()
+
+    # --------END VARIABLES--------
