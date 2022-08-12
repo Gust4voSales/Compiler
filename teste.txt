@@ -1,3 +1,4 @@
+ x * 22 * 33
 program programateste{
 
     int x = 0;

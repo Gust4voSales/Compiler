@@ -1,5 +1,5 @@
 from pickle import NONE
-from CompilerException import CompilerException
+from Lexer.LexerException import LexerException
 from Identifier import Identifier
 from Lexer.delimiters import DELIMITERS
 from Token import Token
@@ -33,7 +33,7 @@ class Lexer:
       char = self.code[self.char_index]
       term += char
       self.char_index += 1
-      print(f"state anterior: {state} - char '{char}'")
+      # print(f"state anterior: {state} - char '{char}'")
 
       # IGNORE CHAR
       if (char == ' ' or char == '\n'):
@@ -57,7 +57,7 @@ class Lexer:
           elif (char == "!" or char == '|' or char == '&'): 
             continue
           else:
-            raise CompilerException(term, self.current_line)
+            raise LexerException(term, self.current_line)
         
         case 'ALPHA':
           if (char.isalpha()):            
@@ -70,7 +70,7 @@ class Lexer:
             self.char_index-=1          
             break
           else:
-            raise CompilerException(term, self.current_line)
+            raise LexerException(term, self.current_line)
         
         case 'ALPHANUM':
           if (char.isalnum()): continue
@@ -79,7 +79,7 @@ class Lexer:
             self.char_index-=1
             break
           else:
-            raise CompilerException(term, self.current_line)
+            raise LexerException(term, self.current_line)
             
         case 'NUMERIC':
           if (char.isnumeric()):
@@ -89,7 +89,7 @@ class Lexer:
             self.char_index-=1
             break
           else:
-            raise CompilerException(term, self.current_line)
+            raise LexerException(term, self.current_line)
 
         case 'DELIMITER':
           if (not self.is_delimiter(term)):
@@ -99,7 +99,7 @@ class Lexer:
     
     if (state == None):
       if (not (term == ' ' or term == '\n' or term=='' or term =='\t')):
-        raise CompilerException(term, self.current_line)
+        raise LexerException(term, self.current_line)
 
     self.add_token_based_on_state(term, state)
 

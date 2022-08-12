@@ -1,5 +1,6 @@
-from CompilerException import CompilerException
+from Lexer.LexerException import LexerException
 from Lexer.lexer import Lexer
+from Parser.parser import Parser
 
 class bcolors:
   HEADER = '\033[95m'
@@ -22,14 +23,17 @@ try:
 
   tokens, ids= lexer.run()
   # print(lexer)
+  parser = Parser(tokens, ids)
+  parser.term()
 
 except Exception as e:
   print(bcolors.FAIL + str(e) + bcolors.ENDC)
 
-for token in tokens:
-  print(token)
+# for token in tokens:
+#   print(token)
 
-print('-------------------------------------')
-for id in ids:
-  print(id)
+# print('-------------------------------------')
+# for id in ids:
+#   print(id)
+
 
