@@ -1,5 +1,6 @@
 from Lexer.LexerException import LexerException
 from Lexer.lexer import Lexer
+from Parser.ParserException import ParserException
 from Parser.parser import Parser
 
 class bcolors:
@@ -24,9 +25,18 @@ try:
   tokens, ids= lexer.run()
   # print(lexer)
   parser = Parser(tokens, ids)
-  parser.term()
+  
+  parser.expression()
+  parser.semicolon()
+  
+  # parser.expression()
+  # parser.semicolon()
 
-except Exception as e:
+except LexerException as e:
+  print('lexico')
+  print(bcolors.FAIL + str(e) + bcolors.ENDC)
+except ParserException as e:
+  print('sintatico')
   print(bcolors.FAIL + str(e) + bcolors.ENDC)
 
 # for token in tokens:

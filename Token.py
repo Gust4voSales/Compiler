@@ -5,9 +5,7 @@ class Token:
     self.line = line
 
   def __str__(self):
-    str = '--------------\n'
-   
-    str += f'({self.token}: "{self.lexeme}" - L{self.line}), '
+    str = f'({self.token}: "{self.lexeme}" - L{self.line}), '
     
     return str
 
