@@ -119,3 +119,64 @@ class Parser:
         self.semicolon()
 
     # --------END VARIABLES--------
+
+    # --------START COMMAND--------
+
+
+
+
+    def command(self):
+        pass
+
+
+
+
+    def print_command(self):
+        
+        token = self.read_token() #read print
+
+        if(not token.token =="PRINT_FUNC"): 
+            raise ParserException(f"Verificação com look ahaed???", token.line)
+        elif(not self.read_token().token == "OPEN_PARENTHESES"): #read (
+            raise ParserException(f"Abre parenteses esperado", token.line)
+
+        self.expression()
+
+        if (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
+            raise ParserException(f"Fecha parenteses esperado", token.line)
+
+        self.semicolon()
+
+         
+    def input_command(self):
+        token = self.read_token() #read input
+
+        if(not token.token =="INPUT_FUNC"): 
+            raise ParserException(f"Verificação com look ahaed??", token.line)
+        elif(not self.read_token().token == "OPEN_PARENTHESES"): #read (
+            raise ParserException(f"Abre parenteses esperado", token.line)
+        elif (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
+            raise ParserException(f"Fecha parenteses esperado", token.line)
+
+        self.semicolon()
+
+    def break_command(self):
+        token = self.read_token() #read break
+        if(not token.token == "BREAK"):
+            raise ParserException(f"Verificação com look ahaed???", token.line)
+        self.semicolon()
+
+    def continue_command(self):
+        token = self.read_token() #read continue
+        if(not token.token == "CONTINUE"):
+            raise ParserException(f"Verificação com look ahaed???", token.line)
+        self.semicolon()
+
+    def return_command(self):
+        token = self.read_token() #read return
+        if(not token.token == "RETURN"):
+            raise ParserException(f"Verificação com look ahaed???", token.line)
+        self.expression()
+        self.semicolon()
+        
+

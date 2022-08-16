@@ -27,8 +27,12 @@ try:
   parser = Parser(tokens, ids)
   
   # parser.var_declaration()
-  parser.var_attribution()
-  parser.var_attribution()
+  parser.break_command()
+  parser.continue_command()
+  parser.return_command()
+
+  # parser.var_attribution()
+  # parser.var_attribution()
   # parser.expression()
   # parser.semicolon()
   
