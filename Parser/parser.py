@@ -47,11 +47,8 @@ class Parser:
             raise ParserException(f"{identifier.lexeme} não é um nome de identificador válido", identifier.line)
 
     # --------START BODIES--------
-    def sub_routine_body(self):
-        look_ahead = self.look_ahead()
-        while (look_ahead.token == "INT_TYPE" or look_ahead.token == "BOOL_TYPE"):
-            self.var_declaration()
-            look_ahead = self.look_ahead()
+    def sub_routine_body(self): # ok
+        self.var_declaration_block()
 
         self.commands()
     # --------END BODIES--------
@@ -107,6 +104,12 @@ class Parser:
         if (not (token.token == 'INT_TYPE' or token.token == 'BOOL_TYPE')):
             raise ParserException(f"Tipo {token.lexeme} inválido", token.line)
     
+    def var_declaration_block(self): # ok
+        look_ahead = self.look_ahead()
+        while (look_ahead.token == "INT_TYPE" or look_ahead.token == "BOOL_TYPE"):
+            self.var_declaration()
+            look_ahead = self.look_ahead()
+
     def var_declaration(self): # ok
         self.type()
         self.identifier()
@@ -157,7 +160,7 @@ class Parser:
         if (not token.token == "CLOSE_BRACKET"):
             raise ParserException("Fecha chaves esperado", token.line)
         
-    def function_declaration(self):
+    def function_declaration(self): # ok 
         token = self.read_token() # read proc
 
         if (not token.token == "HEADER_FUNC"):
@@ -206,12 +209,16 @@ class Parser:
             self.continue_command()
         elif (look_ahead_token.token == "RETURN"):
             self.return_command()
+        elif (look_ahead_token.token == "WHILE"):
+            self.while_command()
+        elif (look_ahead_token.token == "IF"):
+            self.conditional_command()
         elif (look_ahead_token.token == "IDENTIFIER"): # attribution or function/procedure commands
             second_look_ahead = self.look_ahead(2)
             if (second_look_ahead.token == 'ASSIGNMENT_OP'):
                 self.var_attribution()
             elif (second_look_ahead.token == 'OPEN_PARENTHESES'):
-                print("DEVERIA CHAMAR O COMANDO DE FUNÇÂO ou PROCEDURE")
+                self.sub_routine_call() # procedures and functions calls
         else:
             raise ParserException(f"Comando {look_ahead_token.lexeme} inválido.", look_ahead_token.line)
 
@@ -240,6 +247,28 @@ class Parser:
             raise ParserException(f"Fecha parenteses esperado", token.line)
 
         self.semicolon()
+
+    def while_command(self): # ok
+        token = self.read_token() #read while
+
+        if(not token.token =="WHILE"): 
+            raise ParserException(f"Verificação com look ahaed???", token.line)
+        elif(not self.read_token().token == "OPEN_PARENTHESES"): #read (
+            raise ParserException(f"Abre parenteses esperado", token.line)
+
+        self.expression()
+
+        if (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
+            raise ParserException(f"Fecha parenteses esperado", token.line)
+
+        if (not self.read_token().token == "OPEN_BRACKET"): #read {
+            raise ParserException(f"Abre chaves esperado", token.line)
+        
+        self.var_declaration_block()
+        self.commands()
+
+        if (not self.read_token().token == "CLOSE_BRACKET"): #read }
+            raise ParserException(f"Fecha chaves esperado", token.line)
          
     def input_command(self): # ok
         token = self.read_token() #read input
@@ -270,6 +299,77 @@ class Parser:
         if(not token.token == "RETURN"):
             raise ParserException(f"Faltou o return", token.line)
         self.expression()
-        self.semicolon()
-        
+        self.semicolon()            
 
+    def sub_routine_call(self): # ok
+        self.identifier()
+
+        token = self.read_token() # read (
+        if (not token.token == 'OPEN_PARENTHESES'):
+            raise ParserException("Faltou o abre parenteses", token.line)
+
+        look_ahead = self.look_ahead() # check obrigatory ) or optionals expressions (separated by comma)
+        while (not look_ahead.token == 'CLOSE_PARENTHESES'):
+            self.expression()
+            look_ahead = self.look_ahead() # check obrigatory ) or optional comma
+            if (look_ahead.lexeme == ','):
+                self.read_token() # read ,
+        else:
+            token = self.read_token() # read )
+            if (not look_ahead.token == 'CLOSE_PARENTHESES'):
+                raise ParserException("Faltou o fecha parenteses", token.line)
+
+        self.semicolon()
+
+    def function_call(self): # ok
+        self.identifier()
+
+        token = self.read_token() # read (
+        if (not token.token == 'OPEN_PARENTHESES'):
+            raise ParserException("Faltou o abre parenteses", token.line)
+
+        look_ahead = self.look_ahead() # check obrigatory ) or optionals expressions (separated by comma)
+        while (not look_ahead.token == 'CLOSE_PARENTHESES'):
+            self.expression()
+            look_ahead = self.look_ahead() # check obrigatory ) or optional comma
+            if (look_ahead.lexeme == ','):
+                self.read_token() # read ,
+        else:
+            token = self.read_token() # read )
+            if (not look_ahead.token == 'CLOSE_PARENTHESES'):
+                raise ParserException("Faltou o fecha parenteses", token.line)
+
+        self.semicolon()
+
+    def conditional_command(self): # ok
+        token = self.read_token() #read if
+
+        if(not token.token == "IF"): 
+            raise ParserException(f"Verificação com look ahaed???", token.line)
+        elif(not self.read_token().token == "OPEN_PARENTHESES"): #read (
+            raise ParserException(f"Abre parenteses esperado", token.line)
+
+        self.expression()
+
+        if (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
+            raise ParserException(f"Fecha parenteses esperado", token.line)
+
+        if (not self.read_token().token == "OPEN_BRACKET"): #read {
+            raise ParserException(f"Abre chaves esperado", token.line)
+        
+        self.var_declaration_block()
+        self.commands()
+
+        if (not self.read_token().token == "CLOSE_BRACKET"): #read }
+            raise ParserException(f"Fecha chaves esperado", token.line)
+
+        if (self.look_ahead().token == "ELSE"):
+            self.read_token() # read else
+            if (not self.read_token().token == "OPEN_BRACKET"): #read {
+                raise ParserException(f"Abre chaves esperado", token.line)
+            
+            self.var_declaration_block()
+            self.commands()
+
+            if (not self.read_token().token == "CLOSE_BRACKET"): #read }
+                raise ParserException(f"Fecha chaves esperado", token.line)
