@@ -47,10 +47,35 @@ class Parser:
             raise ParserException(f"{identifier.lexeme} não é um nome de identificador válido", identifier.line)
 
     # --------START BODIES--------
+    def program(self):
+        token = self.read_token() #read program
+
+        if(not token.token =="HEADER_PROGRAM"): 
+            raise ParserException(f"Cabeçalho 'program' esperado", token.line)
+
+        self.identifier()
+
+        if (not self.read_token().token == "OPEN_BRACKET"): #read {
+            raise ParserException(f"Abre chaves esperado", token.line)
+        
+        self.body()
+
+        if (not self.read_token().token == "CLOSE_BRACKET"): #read }
+            raise ParserException(f"Fecha chaves esperado", token.line)
+
+    def body(self):
+        self.var_declaration_block()
+        self.sub_routines_declaration()
+        self.commands()
+           
+
+
     def sub_routine_body(self): # ok
         self.var_declaration_block()
 
         self.commands()
+
+    
     # --------END BODIES--------
 
     # --------START EXPRESSION--------
@@ -63,7 +88,9 @@ class Parser:
             token = self.read_token()  
             if (not (token.lexeme==')')):
                 raise ParserException("Faltou ')'", token.line)
-        
+        elif(self.is_identifier(token) and self.look_ahead().token == "OPEN_PARENTHESES"):
+            self.current_token_index-=1
+            self.function_call(True)
         elif (not (self.is_identifier(token) or self.is_number(token) or self.is_boolean(token)) ):
             raise ParserException('Faltou fator', token.line)
         
@@ -99,6 +126,17 @@ class Parser:
     # --------END EXPRESSION--------
     
     # --------START DECLARATIONS--------
+
+    def sub_routines_declaration(self):
+        look_ahead = self.look_ahead()
+        while(look_ahead.token =="HEADER_FUNC" or look_ahead.token =="HEADER_PROC"):
+            if (look_ahead.token =="HEADER_FUNC"):
+                self.function_declaration()
+            elif(look_ahead.token == "HEADER_PROC"):
+                self.procedure_declaration()
+            look_ahead = self.look_ahead()
+
+
     def type(self): # ok
         token = self.read_token()
         if (not (token.token == 'INT_TYPE' or token.token == 'BOOL_TYPE')):
@@ -195,7 +233,10 @@ class Parser:
     def commands(self): # ok
         self.command()
         while (self.look_ahead().token != "CLOSE_BRACKET"):
+            
             self.command()
+        
+        
 
     def command(self):
         look_ahead_token = self.look_ahead()
@@ -215,10 +256,12 @@ class Parser:
             self.conditional_command()
         elif (look_ahead_token.token == "IDENTIFIER"): # attribution or function/procedure commands
             second_look_ahead = self.look_ahead(2)
-            if (second_look_ahead.token == 'ASSIGNMENT_OP'):
+            if (second_look_ahead.token == 'ASSIGNMENT_OP'):  
                 self.var_attribution()
             elif (second_look_ahead.token == 'OPEN_PARENTHESES'):
                 self.sub_routine_call() # procedures and functions calls
+            else:
+                raise ParserException(f"Comando {look_ahead_token.lexeme} inválido.", look_ahead_token.line)
         else:
             raise ParserException(f"Comando {look_ahead_token.lexeme} inválido.", look_ahead_token.line)
 
@@ -229,9 +272,11 @@ class Parser:
         if (not (assign_op.token == 'ASSIGNMENT_OP')):
             raise ParserException(f"Atribuição inválida: {assign_op.lexeme}", assign_op.line)
         
-        self.expression()
-
-        self.semicolon()
+        if(self.look_ahead().token == "INPUT_FUNC"):
+            self.input_command()
+        else:
+            self.expression()
+            self.semicolon()
 
     def print_command(self): # ok
         token = self.read_token() #read print
@@ -321,7 +366,7 @@ class Parser:
 
         self.semicolon()
 
-    def function_call(self): # ok
+    def function_call(self, in_expression = False): # ok
         self.identifier()
 
         token = self.read_token() # read (
@@ -339,7 +384,8 @@ class Parser:
             if (not look_ahead.token == 'CLOSE_PARENTHESES'):
                 raise ParserException("Faltou o fecha parenteses", token.line)
 
-        self.semicolon()
+        if(not in_expression):
+            self.semicolon()
 
     def conditional_command(self): # ok
         token = self.read_token() #read if
@@ -373,3 +419,5 @@ class Parser:
 
             if (not self.read_token().token == "CLOSE_BRACKET"): #read }
                 raise ParserException(f"Fecha chaves esperado", token.line)
+
+    
