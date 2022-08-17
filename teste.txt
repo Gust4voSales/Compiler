@@ -1,12 +1,31 @@
+func int meuFUNc(int x, bool y ) {
+int a, b,c; 
+  
+  x = 2;
+  x = a+3;
+  break;
+  return a;
+  print( 2 + 2);
+  input();
+  continue;
+  return a &&2;
+  a = 2;
+  b = (x ||x == 2 && x<7 +(true <= (2 / 2)) || a);
+  return a &&2;
+}
+
+x = a+3;
 break;
+return a;
+print( 2 + 2);
+input();
 continue;
 return a &&2;
-
-
-print(x ||x == 2 && x<7 +(true <= (2 / 2)) || a);
 a = 2;
 b = (x ||x == 2 && x<7 +(true <= (2 / 2)) || a);
-int a, b,c;
 
+int a, b,c; 
+
+print(x ||x == 2 && x<7 +(true <= (2 / 2)) || a);
 
 ;  a + 62 ; 

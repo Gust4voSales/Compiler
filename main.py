@@ -25,12 +25,9 @@ try:
   tokens, ids= lexer.run()
   # print(lexer)
   parser = Parser(tokens, ids)
-  
-  # parser.var_declaration()
-  parser.break_command()
-  parser.continue_command()
-  parser.return_command()
 
+  parser.function_declaration()
+  # parser.var_declaration()
   # parser.var_attribution()
   # parser.var_attribution()
   # parser.expression()
