@@ -1,4 +1,4 @@
-from Parser.ParserException import ParserException
+from Parser.ParserException import ParserException, missing_token_exception_message
 from Token import Token
 from Symbol import Symbol
 
@@ -9,7 +9,7 @@ class Parser:
         self.current_token_index = -1
         self.current_symbol_index = -1
     
-    
+     
     def set_symbol_type(self, type: str):
         self.current_symbol_index += 1
         self.symbols_table[self.current_symbol_index].type = type
@@ -17,7 +17,6 @@ class Parser:
     # helper function to check (based on id) if sub_routine is a function or a procedure when called to put correct type
     # in symbols table
     def is_function_or_procedure(self, identifier: str):
-        print('--> ' , identifier)
         for symbol in self.symbols_table:
             if (symbol.lexeme == identifier):
                 return symbol.type
@@ -67,18 +66,18 @@ class Parser:
         token = self.read_token() #read program
 
         if(not token.token =="HEADER_PROGRAM"): 
-            raise ParserException(f"Cabeçalho 'program' esperado", token.line)
+            raise ParserException(missing_token_exception_message("program"), token.line)
 
         self.identifier()
         self.set_symbol_type('PROGRAM_NAME')
 
         if (not self.read_token().token == "OPEN_BRACKET"): #read {
-            raise ParserException(f"Abre chaves esperado", token.line)
+            raise ParserException(missing_token_exception_message("{"), token.line)
         
         self.body()
 
         if (not self.read_token().token == "CLOSE_BRACKET"): #read }
-            raise ParserException(f"Fecha chaves esperado", token.line)
+            raise ParserException(missing_token_exception_message("}"), token.line)
 
     def body(self): # ok
         self.var_declaration_block()
@@ -101,7 +100,7 @@ class Parser:
             self.expression()
             token = self.read_token()  
             if (not (token.lexeme==')')):
-                raise ParserException("Faltou ')'", token.line)
+                raise ParserException(missing_token_exception_message(")"), token.line)
         elif(self.is_identifier(token) and self.look_ahead().token == "OPEN_PARENTHESES"):
             self.current_token_index-=1
             self.function_call(True)
@@ -200,23 +199,23 @@ class Parser:
 
         token = self.read_token() # read (
         if (not token.token == "OPEN_PARENTHESES"):
-            raise ParserException("Abre parenteses esperado", token.line)
+            raise ParserException(missing_token_exception_message("("), token.line)
         
         self.parameters_list()
 
         token = self.read_token() # read )
         if (not token.token == "CLOSE_PARENTHESES"):
-            raise ParserException("Fecha parenteses esperado", token.line)
+            raise ParserException(missing_token_exception_message(")"), token.line)
         
         token = self.read_token() # read {
         if (not token.token == "OPEN_BRACKET"):
-            raise ParserException("Abre chaves esperado", token.line)
+            raise ParserException(missing_token_exception_message("{"), token.line)
         
         self.sub_routine_body()
 
         token = self.read_token() # read }
         if (not token.token == "CLOSE_BRACKET"):
-            raise ParserException("Fecha chaves esperado", token.line)
+            raise ParserException(missing_token_exception_message("}"), token.line)
         
     def function_declaration(self): # ok 
         token = self.read_token() # read func
@@ -230,23 +229,23 @@ class Parser:
 
         token = self.read_token() # read (
         if (not token.token == "OPEN_PARENTHESES"):
-            raise ParserException("Abre parenteses esperado", token.line)
+            raise ParserException(missing_token_exception_message("("), token.line)
         
         self.parameters_list()
 
         token = self.read_token() # read )
         if (not token.token == "CLOSE_PARENTHESES"):
-            raise ParserException("Fecha parenteses esperado", token.line)
+            raise ParserException(missing_token_exception_message(")"), token.line)
         
         token = self.read_token() # read {
         if (not token.token == "OPEN_BRACKET"):
-            raise ParserException("Abre chaves esperado", token.line)
+            raise ParserException(missing_token_exception_message("{"), token.line)
         
         self.sub_routine_body()
 
         token = self.read_token() # read }
         if (not token.token == "CLOSE_BRACKET"):
-            raise ParserException("Fecha chaves esperado", token.line)
+            raise ParserException(missing_token_exception_message("}"), token.line)
 
     # --------END DECLARATIONS--------
 
@@ -280,9 +279,9 @@ class Parser:
             elif (second_look_ahead.token == 'OPEN_PARENTHESES'):
                 self.sub_routine_call() # procedures and functions calls
             else:
-                raise ParserException(f"Comando {look_ahead_token.lexeme} inválido.", look_ahead_token.line)
+                raise ParserException(f"Comando {look_ahead_token.lexeme} inválido", look_ahead_token.line)
         else:
-            raise ParserException(f"Comando {look_ahead_token.lexeme} inválido.", look_ahead_token.line)
+            raise ParserException(f"Comando {look_ahead_token.lexeme} inválido", look_ahead_token.line)
 
     def var_attribution(self): # ok
         self.identifier()
@@ -304,12 +303,12 @@ class Parser:
         if(not token.token =="PRINT_FUNC"): 
             raise ParserException(f"Verificação com look ahaed???", token.line)
         elif(not self.read_token().token == "OPEN_PARENTHESES"): #read (
-            raise ParserException(f"Abre parenteses esperado", token.line)
+            raise ParserException(missing_token_exception_message("("), token.line)
 
         self.expression()
 
         if (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
-            raise ParserException(f"Fecha parenteses esperado", token.line)
+            raise ParserException(missing_token_exception_message(")"), token.line)
 
         self.semicolon()
 
@@ -319,21 +318,21 @@ class Parser:
         if(not token.token =="WHILE"): 
             raise ParserException(f"Verificação com look ahaed???", token.line)
         elif(not self.read_token().token == "OPEN_PARENTHESES"): #read (
-            raise ParserException(f"Abre parenteses esperado", token.line)
+            raise ParserException(missing_token_exception_message("("), token.line)
 
         self.expression()
 
         if (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
-            raise ParserException(f"Fecha parenteses esperado", token.line)
+            raise ParserException(missing_token_exception_message(")"), token.line)
 
         if (not self.read_token().token == "OPEN_BRACKET"): #read {
-            raise ParserException(f"Abre chaves esperado", token.line)
+            raise ParserException(missing_token_exception_message("{"), token.line)
         
         self.var_declaration_block()
         self.commands()
 
         if (not self.read_token().token == "CLOSE_BRACKET"): #read }
-            raise ParserException(f"Fecha chaves esperado", token.line)
+            raise ParserException(missing_token_exception_message("}"), token.line)
          
     def input_command(self): # ok
         token = self.read_token() #read input
@@ -341,9 +340,9 @@ class Parser:
         if(not token.token =="INPUT_FUNC"): 
             raise ParserException(f"Verificação com look ahaed??", token.line)
         elif(not self.read_token().token == "OPEN_PARENTHESES"): #read (
-            raise ParserException(f"Abre parenteses esperado", token.line)
+            raise ParserException(missing_token_exception_message("("), token.line)
         elif (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
-            raise ParserException(f"Fecha parenteses esperado", token.line)
+            raise ParserException(missing_token_exception_message(")"), token.line)
 
         self.semicolon()
 
@@ -362,7 +361,7 @@ class Parser:
     def return_command(self): # ok
         token = self.read_token() #read return
         if(not token.token == "RETURN"):
-            raise ParserException(f"Faltou o return", token.line)
+            raise ParserException(missing_token_exception_message("return"), token.line)
         self.expression()
         self.semicolon()            
 
@@ -373,7 +372,7 @@ class Parser:
 
         token = self.read_token() # read (
         if (not token.token == 'OPEN_PARENTHESES'):
-            raise ParserException("Faltou o abre parenteses", token.line)
+            raise ParserException(missing_token_exception_message("("), token.line)
 
         look_ahead = self.look_ahead() # check obrigatory ) or optionals expressions (separated by comma)
         while (not look_ahead.token == 'CLOSE_PARENTHESES'):
@@ -384,7 +383,7 @@ class Parser:
         else:
             token = self.read_token() # read )
             if (not look_ahead.token == 'CLOSE_PARENTHESES'):
-                raise ParserException("Faltou o fecha parenteses", token.line)
+                raise ParserException(missing_token_exception_message(")"), token.line)
 
         self.semicolon()
 
@@ -395,7 +394,7 @@ class Parser:
 
         token = self.read_token() # read (
         if (not token.token == 'OPEN_PARENTHESES'):
-            raise ParserException("Faltou o abre parenteses", token.line)
+            raise ParserException(missing_token_exception_message("("), token.line)
 
         look_ahead = self.look_ahead() # check obrigatory ) or optionals expressions (separated by comma)
         while (not look_ahead.token == 'CLOSE_PARENTHESES'):
@@ -406,7 +405,7 @@ class Parser:
         else:
             token = self.read_token() # read )
             if (not look_ahead.token == 'CLOSE_PARENTHESES'):
-                raise ParserException("Faltou o fecha parenteses", token.line)
+                raise ParserException(missing_token_exception_message(")"), token.line)
 
         if(not in_expression):
             self.semicolon()
@@ -417,31 +416,31 @@ class Parser:
         if(not token.token == "IF"): 
             raise ParserException(f"Verificação com look ahaed???", token.line)
         elif(not self.read_token().token == "OPEN_PARENTHESES"): #read (
-            raise ParserException(f"Abre parenteses esperado", token.line)
+            raise ParserException(missing_token_exception_message("("), token.line)
 
         self.expression()
 
         if (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
-            raise ParserException(f"Fecha parenteses esperado", token.line)
+            raise ParserException(missing_token_exception_message(")"), token.line)
 
         if (not self.read_token().token == "OPEN_BRACKET"): #read {
-            raise ParserException(f"Abre chaves esperado", token.line)
+            raise ParserException(missing_token_exception_message("{"), token.line)
         
         self.var_declaration_block()
         self.commands()
 
         if (not self.read_token().token == "CLOSE_BRACKET"): #read }
-            raise ParserException(f"Fecha chaves esperado", token.line)
+            raise ParserException(missing_token_exception_message("}"), token.line)
 
         if (self.look_ahead().token == "ELSE"):
             self.read_token() # read else
             if (not self.read_token().token == "OPEN_BRACKET"): #read {
-                raise ParserException(f"Abre chaves esperado", token.line)
+                raise ParserException(missing_token_exception_message("{"), token.line)
             
             self.var_declaration_block()
             self.commands()
 
             if (not self.read_token().token == "CLOSE_BRACKET"): #read }
-                raise ParserException(f"Fecha chaves esperado", token.line)
+                raise ParserException(missing_token_exception_message("}"), token.line)
 
     

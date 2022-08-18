@@ -32,11 +32,16 @@ try:
 
   
 except LexerException as e:
-  print('lexico')
-  print(bcolors.FAIL + str(e) + bcolors.ENDC)
+  # print('lexico')
+  lines = raw_code.splitlines()
+  print(bcolors.FAIL + str(e))
+  print(f"{bcolors.FAIL}{e.line}. {lines[e.line-1]}{bcolors.ENDC}")
 except ParserException as e:
-  print('sintatico')
-  print(bcolors.FAIL + str(e) + bcolors.ENDC)
+  # print('sintatico')
+  lines = raw_code.splitlines()
+  print(bcolors.FAIL + str(e))
+  print(f"{bcolors.FAIL}{e.line}. {lines[e.line-1]}{bcolors.ENDC}")
+
 
 # for token in tokens:
 #   print(token)
