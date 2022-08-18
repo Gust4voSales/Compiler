@@ -54,7 +54,7 @@ class Parser:
     def semicolon(self): #ok
         token = self.read_token()
         if (not token.token == 'SEMICOLON'):
-            raise ParserException(f"expressão inválida ao ler {self.tokens[self.current_token_index].lexeme}", self.tokens[self.current_token_index].line)
+            raise ParserException(f"Faltou \";\" antes do {self.tokens[self.current_token_index].lexeme}", self.tokens[self.current_token_index].line)
 
     def identifier(self): # ok
         identifier = self.read_token() # read identifier
