@@ -69,6 +69,11 @@ class Lexer:
             term = term[:-1]
             self.char_index-=1          
             break
+          # could be a delimiter
+          elif (char == "!" or char == '|' or char == '&'): 
+            term = term[:-1]
+            self.char_index-=1          
+            break
           else:
             raise LexerException(term, self.current_line)
         
@@ -77,6 +82,11 @@ class Lexer:
           elif (self.is_delimiter(char)):
             term = term[:-1]
             self.char_index-=1
+            break
+          # could be a delimiter
+          elif (char == "!" or char == '|' or char == '&'): 
+            term = term[:-1]
+            self.char_index-=1          
             break
           else:
             raise LexerException(term, self.current_line)
@@ -128,7 +138,7 @@ class Lexer:
         self.symbols_table.append(Symbol(lexeme=lexeme, line=self.current_line))
     # Symbol
     elif (state == 'ALPHANUM'):
-      self.tokens.append(Token(lexeme=lexeme, line=self.current_line))
+      self.tokens.append(Token(token='IDENTIFIER',lexeme=lexeme, line=self.current_line))
       self.symbols_table.append(Symbol(lexeme=lexeme, line=self.current_line))
     # NUMERIC
     elif (state == 'NUMERIC'):
