@@ -7,7 +7,23 @@ class Parser:
         self.tokens = tokens
         self.symbols_table = symbols_table
         self.current_token_index = -1
+        self.current_symbol_index = -1
     
+    
+    def set_symbol_type(self, type: str):
+        self.current_symbol_index += 1
+        self.symbols_table[self.current_symbol_index].type = type
+
+    # helper function to check (based on id) if sub_routine is a function or a procedure when called to put correct type
+    # in symbols table
+    def is_function_or_procedure(self, identifier: str):
+        print('--> ' , identifier)
+        for symbol in self.symbols_table:
+            if (symbol.lexeme == identifier):
+                return symbol.type
+        return None
+        
+
     def look_ahead(self, quantity=1):
         self.current_token_index += quantity
         if (self.current_token_index <= len(self.tokens)-1):
@@ -41,7 +57,7 @@ class Parser:
         if (not token.token == 'SEMICOLON'):
             raise ParserException(f"expressão inválida ao ler {self.tokens[self.current_token_index].lexeme}", self.tokens[self.current_token_index].line)
 
-    def identifier(self):
+    def identifier(self): # ok
         identifier = self.read_token() # read identifier
         if (not self.is_identifier(identifier)):
             raise ParserException(f"{identifier.lexeme} não é um nome de identificador válido", identifier.line)
@@ -54,6 +70,7 @@ class Parser:
             raise ParserException(f"Cabeçalho 'program' esperado", token.line)
 
         self.identifier()
+        self.set_symbol_type('PROGRAM_NAME')
 
         if (not self.read_token().token == "OPEN_BRACKET"): #read {
             raise ParserException(f"Abre chaves esperado", token.line)
@@ -77,6 +94,7 @@ class Parser:
     # --------START EXPRESSION--------
     def factor(self): 
         token = self.read_token()  
+        function_call = False
 
         # (<expression>) 
         if (token.lexeme=='('):
@@ -87,8 +105,12 @@ class Parser:
         elif(self.is_identifier(token) and self.look_ahead().token == "OPEN_PARENTHESES"):
             self.current_token_index-=1
             self.function_call(True)
+            function_call = True
         elif (not (self.is_identifier(token) or self.is_number(token) or self.is_boolean(token)) ):
             raise ParserException('Faltou fator', token.line)
+        
+        if (not function_call and self.is_identifier(token)): # a variable identifier was used
+            self.set_symbol_type("VARIABLE_NAME")
         
     def term(self): # ok ?
         self.factor()
@@ -145,16 +167,19 @@ class Parser:
     def var_declaration(self): # ok
         self.type()
         self.identifier()
+        self.set_symbol_type("VARIABLE_NAME")
 
         while (self.look_ahead().lexeme==','):
             self.read_token() # read ,
             self.identifier()
+            self.set_symbol_type("VARIABLE_NAME")
 
         self.semicolon()  
 
     def parameter(self): # ok
         self.type() 
         self.identifier()
+        self.set_symbol_type("VARIABLE_NAME")
 
     def parameters_list(self): # ok
         look_ahead = self.look_ahead()
@@ -171,6 +196,7 @@ class Parser:
             raise ParserException(f"Verificação com look ahead??? Era pra ler o proc", token.line)
         
         self.identifier()
+        self.set_symbol_type("PROCEDURE_NAME")
 
         token = self.read_token() # read (
         if (not token.token == "OPEN_PARENTHESES"):
@@ -193,13 +219,14 @@ class Parser:
             raise ParserException("Fecha chaves esperado", token.line)
         
     def function_declaration(self): # ok 
-        token = self.read_token() # read proc
+        token = self.read_token() # read func
 
         if (not token.token == "HEADER_FUNC"):
             raise ParserException(f"Verificação com look ahead??? Era pra ler o func", token.line)
         
         self.type()
         self.identifier()
+        self.set_symbol_type("FUNCTION_NAME")
 
         token = self.read_token() # read (
         if (not token.token == "OPEN_PARENTHESES"):
@@ -259,6 +286,7 @@ class Parser:
 
     def var_attribution(self): # ok
         self.identifier()
+        self.set_symbol_type("VARIABLE_NAME")
         
         assign_op = self.read_token() # read =
         if (not (assign_op.token == 'ASSIGNMENT_OP')):
@@ -340,6 +368,8 @@ class Parser:
 
     def sub_routine_call(self): # ok
         self.identifier()
+        sub_routine_type = self.is_function_or_procedure(self.tokens[self.current_token_index].lexeme)
+        self.set_symbol_type(sub_routine_type)
 
         token = self.read_token() # read (
         if (not token.token == 'OPEN_PARENTHESES'):
@@ -358,8 +388,10 @@ class Parser:
 
         self.semicolon()
 
-    def function_call(self, in_expression = False): # ok
+    # only being called inside expression because outside an expression functions are called through sub_routine_call
+    def function_call(self, in_expression = False): # ok 
         self.identifier()
+        self.set_symbol_type("FUNCTION_NAME")
 
         token = self.read_token() # read (
         if (not token.token == 'OPEN_PARENTHESES'):

@@ -24,11 +24,11 @@ try:
 
   tokens, symbols = lexer.run()
   # print(lexer)
-  for s in symbols:
-    print(s)
   parser = Parser(tokens, symbols)
 
   parser.program()
+  for s in parser.symbols_table:
+    print(s)
 
   
 except LexerException as e:

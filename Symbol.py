@@ -1,8 +1,8 @@
 class Symbol:
   def __init__(self, lexeme: str, line: int):
-    self.type: str = None
     self.lexeme = lexeme
     self.line = line
+    self.type: str = None
 
   def __str__(self):
     str = '--------------\n'

@@ -1,26 +1,19 @@
 program ola{
-  int a, x, resu;
+  int x;
 
-  func int add(int x, int y){
-    if (x <= 2 && false) {
-
-      resu = add(x,y) ;
-      print(add(x,y));
-    } else {
-      print(s);
-    }
-    return x+y;
+  proc meuPRoc(int x) {
+    print(true);
   }
 
-  x = 2 ;
-  y=2;
-
-  if (x <= 2 && false) {
-    resu = add(x,y) ;
-    print(add(x,y));
-  } else {
-    print(s);
+  func int add() {
+    x = 2;
   }
-  print(resu);
+
+  if (x) {
+    sub();
+    meuPRoc();
+    x = add();
+    add();
+  }
 
 }
