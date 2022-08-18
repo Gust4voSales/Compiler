@@ -27,27 +27,22 @@ try:
   parser = Parser(tokens, symbols)
 
   parser.program()
+
+  print("---------------------TOKENS---------------------")
+  for token in tokens:
+    print(token)
+  print('\n')
+
+  print("---------------------Tabela de Simbolos---------------------")
   for s in parser.symbols_table:
     print(s)
+  print('\n')
 
-  
 except LexerException as e:
-  # print('lexico')
   lines = raw_code.splitlines()
   print(bcolors.FAIL + str(e))
   print(f"{bcolors.FAIL}{e.line}. {lines[e.line-1]}{bcolors.ENDC}")
 except ParserException as e:
-  # print('sintatico')
   lines = raw_code.splitlines()
   print(bcolors.FAIL + str(e))
   print(f"{bcolors.FAIL}{e.line}. {lines[e.line-1]}{bcolors.ENDC}")
-
-
-# for token in tokens:
-#   print(token)
-
-# print('-------------------------------------')
-# for id in ids:
-#   print(id)
-
-

@@ -5,9 +5,7 @@ class Symbol:
     self.type: str = None
 
   def __str__(self):
-    str = '--------------\n'
-   
-    str += f'({self.type}: "{self.lexeme}" - L{self.line}), '
+    str = f'({self.type}: "{self.lexeme}" - L{self.line}), '
     
     return str
 

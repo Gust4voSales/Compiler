@@ -1,12 +1,12 @@
 program ola{
-  int x;
+  int x ;
 
   proc meuPRoc(int x) {
     print(true);
   }
 
   func int add() {
-    x = 2;
+    x = a2&&b;
   }
 
   if (x) {

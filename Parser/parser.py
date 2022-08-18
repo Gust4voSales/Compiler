@@ -36,7 +36,6 @@ class Parser:
     def read_token(self):
         self.current_token_index += 1
         if (self.current_token_index <= len(self.tokens)-1):
-            print(self.tokens[self.current_token_index])    
             return self.tokens[self.current_token_index]   
         else:
             self.current_token_index -= 1
@@ -279,9 +278,9 @@ class Parser:
             elif (second_look_ahead.token == 'OPEN_PARENTHESES'):
                 self.sub_routine_call() # procedures and functions calls
             else:
-                raise ParserException(f"Comando {look_ahead_token.lexeme} inválido", look_ahead_token.line)
+                raise ParserException(f"Comando \"{look_ahead_token.lexeme}\" inválido", look_ahead_token.line)
         else:
-            raise ParserException(f"Comando {look_ahead_token.lexeme} inválido", look_ahead_token.line)
+            raise ParserException(f"Comando \"{look_ahead_token.lexeme}\" inválido", look_ahead_token.line)
 
     def var_attribution(self): # ok
         self.identifier()
