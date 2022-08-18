@@ -26,8 +26,9 @@ try:
   # print(lexer)
   parser = Parser(tokens, ids)
 
-
-  parser.commands()
+  parser.program()
+  # parser.sub_routines_declaration()
+  #parser.commands()
   # parser.var_declaration()
   # parser.var_attribution()
   # parser.var_attribution()

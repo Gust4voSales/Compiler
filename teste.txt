@@ -1,11 +1,15 @@
-if (true) {
-  int a, b;  
-  x = 2;
-} else {
-  x = 2;
-  if (x <= 2) {
-    print(x);
+program ola{
+  int a, x, resu;
+
+  func int add(int x, int y){
+    return x+y;
   }
-}
+
+  x = 2 ;
+  y=2;
+
+  resu = add(x,y) ;
+  print(add(x,y));
+  print(resu);
 
 }
