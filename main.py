@@ -22,18 +22,14 @@ with open('teste.txt', 'r') as f:
 try:
   lexer = Lexer(raw_code)
 
-  tokens, ids= lexer.run()
+  tokens, symbols = lexer.run()
   # print(lexer)
-  parser = Parser(tokens, ids)
+  for s in symbols:
+    print(s)
+  parser = Parser(tokens, symbols)
 
   parser.program()
-  # parser.sub_routines_declaration()
-  #parser.commands()
-  # parser.var_declaration()
-  # parser.var_attribution()
-  # parser.var_attribution()
-  # parser.expression()
-  # parser.semicolon()
+
   
 except LexerException as e:
   print('lexico')

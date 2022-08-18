@@ -1,11 +1,11 @@
 from Parser.ParserException import ParserException
 from Token import Token
-from Identifier import Identifier
+from Symbol import Symbol
 
 class Parser:
-    def __init__(self, tokens:list[Token], ids_table:list[Identifier]) -> None:
+    def __init__(self, tokens:list[Token], symbols_table:list[Symbol]) -> None:
         self.tokens = tokens
-        self.ids_table = ids_table
+        self.symbols_table = symbols_table
         self.current_token_index = -1
     
     def look_ahead(self, quantity=1):
@@ -47,7 +47,7 @@ class Parser:
             raise ParserException(f"{identifier.lexeme} não é um nome de identificador válido", identifier.line)
 
     # --------START BODIES--------
-    def program(self):
+    def program(self): # ok
         token = self.read_token() #read program
 
         if(not token.token =="HEADER_PROGRAM"): 
@@ -63,19 +63,15 @@ class Parser:
         if (not self.read_token().token == "CLOSE_BRACKET"): #read }
             raise ParserException(f"Fecha chaves esperado", token.line)
 
-    def body(self):
+    def body(self): # ok
         self.var_declaration_block()
         self.sub_routines_declaration()
         self.commands()
-           
-
 
     def sub_routine_body(self): # ok
         self.var_declaration_block()
 
         self.commands()
-
-    
     # --------END BODIES--------
 
     # --------START EXPRESSION--------
@@ -126,7 +122,6 @@ class Parser:
     # --------END EXPRESSION--------
     
     # --------START DECLARATIONS--------
-
     def sub_routines_declaration(self):
         look_ahead = self.look_ahead()
         while(look_ahead.token =="HEADER_FUNC" or look_ahead.token =="HEADER_PROC"):
@@ -135,7 +130,6 @@ class Parser:
             elif(look_ahead.token == "HEADER_PROC"):
                 self.procedure_declaration()
             look_ahead = self.look_ahead()
-
 
     def type(self): # ok
         token = self.read_token()
@@ -235,8 +229,6 @@ class Parser:
         while (self.look_ahead().token != "CLOSE_BRACKET"):
             
             self.command()
-        
-        
 
     def command(self):
         look_ahead_token = self.look_ahead()

@@ -2,14 +2,25 @@ program ola{
   int a, x, resu;
 
   func int add(int x, int y){
+    if (x <= 2 && false) {
+
+      resu = add(x,y) ;
+      print(add(x,y));
+    } else {
+      print(s);
+    }
     return x+y;
   }
 
   x = 2 ;
   y=2;
 
-  resu = add(x,y) ;
-  print(add(x,y));
+  if (x <= 2 && false) {
+    resu = add(x,y) ;
+    print(add(x,y));
+  } else {
+    print(s);
+  }
   print(resu);
 
 }

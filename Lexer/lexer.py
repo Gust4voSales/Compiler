@@ -1,6 +1,6 @@
 from pickle import NONE
 from Lexer.LexerException import LexerException
-from Identifier import Identifier
+from Symbol import Symbol
 from Lexer.delimiters import DELIMITERS
 from Token import Token
 from Lexer.reserverd_keywords import RESERVED_KEYWORDS
@@ -9,7 +9,7 @@ from Lexer.reserverd_keywords import RESERVED_KEYWORDS
 class Lexer:
   def __init__(self, code: str):
     self.tokens: list[Token] = []
-    self.ids_table: list[Identifier] = []
+    self.symbols_table: list[Symbol] = []
     self.char_index = 0
     self.current_line = 1
     self.code = code
@@ -112,10 +112,10 @@ class Lexer:
 
   def run(self):
     self.read_next_token()
-    return self.tokens, self.ids_table
+    return self.tokens, self.symbols_table
 
   def add_token_based_on_state(self, lexeme: str, state: str):
-     # CAN BE RESERVED KEY_WORD OR IDENTIFIER
+     # CAN BE RESERVED KEY_WORD OR Symbol
     if (state == 'ALPHA'):
       keyword = False
       for key_token, lexeme_value in RESERVED_KEYWORDS.items():
@@ -125,11 +125,11 @@ class Lexer:
           break
       if (not keyword):
         self.tokens.append(Token(token='IDENTIFIER', lexeme=lexeme, line=self.current_line))
-        self.ids_table.append(Identifier(token='IDENTIFIER', lexeme=lexeme, line=self.current_line))
-    # IDENTIFIER
+        self.symbols_table.append(Symbol(lexeme=lexeme, line=self.current_line))
+    # Symbol
     elif (state == 'ALPHANUM'):
-      self.tokens.append(Token(token='IDENTIFIER', lexeme=lexeme, line=self.current_line))
-      self.ids_table.append(Identifier(token='IDENTIFIER', lexeme=lexeme, line=self.current_line))
+      self.tokens.append(Token(lexeme=lexeme, line=self.current_line))
+      self.symbols_table.append(Symbol(lexeme=lexeme, line=self.current_line))
     # NUMERIC
     elif (state == 'NUMERIC'):
       self.tokens.append(Token(token='NUMERIC', lexeme=lexeme, line=self.current_line))
