@@ -1,17 +1,22 @@
 program ola{
   int x ;
 
-  func int add() {
+  proc myProc(int a, int b) {
     int y;
     x = 2 + x + y;
 
     if (true) {
       int x;
 
-      print(x);
       x = 3;
     }
+    outroProc();
   }
 
-  add();
+    proc outroProc(int a, int b) {
+      x = 3;
+      print(a);
+    }
+
+  myProc();
 }

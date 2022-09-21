@@ -38,7 +38,7 @@ class Parser:
                     break
 
         if not scope_found:
-            raise ParserException("Variável utilizada não foi declarada no escopo atual", current_symbol.line)
+            raise ParserException("Indentificar utilizado não foi declarado no escopo atual", current_symbol.line)
 
     # ---------END SCOPE FUNCTIONS---------
 
@@ -144,7 +144,6 @@ class Parser:
             self.set_symbol_type("VARIABLE_NAME")
             print(token.line)
             self.set_valid_identifier_scope()
-                    
         
     def term(self): # ok ?
         self.factor()
@@ -216,6 +215,7 @@ class Parser:
         self.type() 
         self.identifier()
         self.set_symbol_type("VARIABLE_NAME")
+        self.set_symbol_scope()
 
     def parameters_list(self): # ok
         look_ahead = self.look_ahead()
@@ -233,6 +233,7 @@ class Parser:
         
         identifier = self.identifier()
         self.set_symbol_type("PROCEDURE_NAME")
+        self.set_symbol_scope()
         self.push_new_scope(identifier) # add to scope stack
 
         token = self.read_token() # read (
@@ -417,6 +418,7 @@ class Parser:
         self.identifier()
         sub_routine_type = self.is_function_or_procedure(self.tokens[self.current_token_index].lexeme)
         self.set_symbol_type(sub_routine_type)
+        self.set_valid_identifier_scope()
 
         token = self.read_token() # read (
         if (not token.token == 'OPEN_PARENTHESES'):
