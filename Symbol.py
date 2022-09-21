@@ -3,9 +3,10 @@ class Symbol:
     self.lexeme = lexeme
     self.line = line
     self.type: str = None
+    self.scope: str = None
 
   def __str__(self):
-    str = f'({self.type}: "{self.lexeme}" - L{self.line}), '
+    str = f'({self.type}: "{self.lexeme}" - L{self.line}), SCOPE: {self.scope}'
     
     return str
 

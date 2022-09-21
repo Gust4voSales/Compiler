@@ -8,11 +8,39 @@ class Parser:
         self.symbols_table = symbols_table
         self.current_token_index = -1
         self.current_symbol_index = -1
-    
+        self.scope_stack = []    
      
     def set_symbol_type(self, type: str):
         self.current_symbol_index += 1
         self.symbols_table[self.current_symbol_index].type = type
+
+    # ---------SCOPE FUNCTIONS---------
+    def push_new_scope(self, token: Token):
+        self.scope_stack.append(f'{token.lexeme}-{token.line}') # add to scope stack 
+
+    def set_symbol_scope(self, scope=None):
+        if not scope:
+            self.symbols_table[self.current_symbol_index].scope = self.scope_stack[-1] # scope stack top
+        else:
+            self.symbols_table[self.current_symbol_index].scope = scope
+
+    # check and set if current symbol is already initialized in a valid scope
+    def set_valid_identifier_scope(self):
+        scope_found = False
+        current_symbol = self.symbols_table[self.current_symbol_index]
+        sliced_symbols_reversed = self.symbols_table[:self.current_symbol_index][::-1]
+
+        for symbol in sliced_symbols_reversed:
+            if (symbol.lexeme == current_symbol.lexeme):
+                if (symbol.scope in self.scope_stack):
+                    self.set_symbol_scope(symbol.scope)
+                    scope_found = True
+                    break
+
+        if not scope_found:
+            raise ParserException("Variável utilizada não foi declarada no escopo atual", current_symbol.line)
+
+    # ---------END SCOPE FUNCTIONS---------
 
     # helper function to check (based on id) if sub_routine is a function or a procedure when called to put correct type
     # in symbols table
@@ -59,6 +87,8 @@ class Parser:
         identifier = self.read_token() # read identifier
         if (not self.is_identifier(identifier)):
             raise ParserException(f"{identifier.lexeme} não é um nome de identificador válido", identifier.line)
+        
+        return identifier
 
     # --------START BODIES--------
     def program(self): # ok
@@ -67,8 +97,9 @@ class Parser:
         if(not token.token =="HEADER_PROGRAM"): 
             raise ParserException(missing_token_exception_message("program"), token.line)
 
-        self.identifier()
+        identifier = self.identifier()
         self.set_symbol_type('PROGRAM_NAME')
+        self.push_new_scope(identifier) # add to scope stack 
 
         if (not self.read_token().token == "OPEN_BRACKET"): #read {
             raise ParserException(missing_token_exception_message("{"), token.line)
@@ -77,6 +108,8 @@ class Parser:
 
         if (not self.read_token().token == "CLOSE_BRACKET"): #read }
             raise ParserException(missing_token_exception_message("}"), token.line)
+        
+        self.scope_stack.pop() # pop from scope stack
 
     def body(self): # ok
         self.var_declaration_block()
@@ -109,6 +142,9 @@ class Parser:
         
         if (not function_call and self.is_identifier(token)): # a variable identifier was used
             self.set_symbol_type("VARIABLE_NAME")
+            print(token.line)
+            self.set_valid_identifier_scope()
+                    
         
     def term(self): # ok ?
         self.factor()
@@ -165,7 +201,9 @@ class Parser:
     def var_declaration(self): # ok
         self.type()
         self.identifier()
+
         self.set_symbol_type("VARIABLE_NAME")
+        self.set_symbol_scope()
 
         while (self.look_ahead().lexeme==','):
             self.read_token() # read ,
@@ -193,8 +231,9 @@ class Parser:
         if (not token.token == "HEADER_PROC"):
             raise ParserException(f"Verificação com look ahead??? Era pra ler o proc", token.line)
         
-        self.identifier()
+        identifier = self.identifier()
         self.set_symbol_type("PROCEDURE_NAME")
+        self.push_new_scope(identifier) # add to scope stack
 
         token = self.read_token() # read (
         if (not token.token == "OPEN_PARENTHESES"):
@@ -216,6 +255,8 @@ class Parser:
         if (not token.token == "CLOSE_BRACKET"):
             raise ParserException(missing_token_exception_message("}"), token.line)
         
+        self.scope_stack.pop() # pop from scope stack
+
     def function_declaration(self): # ok 
         token = self.read_token() # read func
 
@@ -223,8 +264,9 @@ class Parser:
             raise ParserException(f"Verificação com look ahead??? Era pra ler o func", token.line)
         
         self.type()
-        self.identifier()
+        identifier = self.identifier()
         self.set_symbol_type("FUNCTION_NAME")
+        self.push_new_scope(identifier) # add to scope stack
 
         token = self.read_token() # read (
         if (not token.token == "OPEN_PARENTHESES"):
@@ -245,6 +287,8 @@ class Parser:
         token = self.read_token() # read }
         if (not token.token == "CLOSE_BRACKET"):
             raise ParserException(missing_token_exception_message("}"), token.line)
+        
+        self.scope_stack.pop() # pop from scope stack
 
     # --------END DECLARATIONS--------
 
@@ -285,7 +329,8 @@ class Parser:
     def var_attribution(self): # ok
         self.identifier()
         self.set_symbol_type("VARIABLE_NAME")
-        
+        self.set_valid_identifier_scope()
+
         assign_op = self.read_token() # read =
         if (not (assign_op.token == 'ASSIGNMENT_OP')):
             raise ParserException(f"Atribuição inválida: {assign_op.lexeme}", assign_op.line)
@@ -314,6 +359,8 @@ class Parser:
     def while_command(self): # ok
         token = self.read_token() #read while
 
+        self.push_new_scope(token) # add to scope stack
+
         if(not token.token =="WHILE"): 
             raise ParserException(f"Verificação com look ahaed???", token.line)
         elif(not self.read_token().token == "OPEN_PARENTHESES"): #read (
@@ -332,6 +379,8 @@ class Parser:
 
         if (not self.read_token().token == "CLOSE_BRACKET"): #read }
             raise ParserException(missing_token_exception_message("}"), token.line)
+
+        self.scope_stack.pop() # pop from scope stack
          
     def input_command(self): # ok
         token = self.read_token() #read input
@@ -411,6 +460,8 @@ class Parser:
 
     def conditional_command(self): # ok
         token = self.read_token() #read if
+        
+        self.push_new_scope(token) # add to scope stack 
 
         if(not token.token == "IF"): 
             raise ParserException(f"Verificação com look ahaed???", token.line)
@@ -430,9 +481,13 @@ class Parser:
 
         if (not self.read_token().token == "CLOSE_BRACKET"): #read }
             raise ParserException(missing_token_exception_message("}"), token.line)
+        
+        self.scope_stack.pop() # pop from scope stack
 
         if (self.look_ahead().token == "ELSE"):
-            self.read_token() # read else
+            token = self.read_token() # read else
+            self.push_new_scope(token) # add to scope stack
+
             if (not self.read_token().token == "OPEN_BRACKET"): #read {
                 raise ParserException(missing_token_exception_message("{"), token.line)
             
@@ -441,5 +496,7 @@ class Parser:
 
             if (not self.read_token().token == "CLOSE_BRACKET"): #read }
                 raise ParserException(missing_token_exception_message("}"), token.line)
+            
+            self.scope_stack.pop()
 
     
