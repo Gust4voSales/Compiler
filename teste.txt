@@ -1,7 +1,7 @@
 program ola{
   int x ;
 
-  proc myProc(int a, int b) {
+  func int myProc(int a, int b) {
     int y;
     x = 2 + x + y;
 
@@ -9,14 +9,20 @@ program ola{
       int x;
 
       x = 3;
+     return x;
     }
-    outroProc();
+    return x;
   }
+
+  
 
     proc outroProc(int a, int b) {
       x = 3;
       print(a);
+     
     }
 
+  x =2+myProc();
   myProc();
+  
 }
