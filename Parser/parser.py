@@ -11,8 +11,11 @@ class Parser:
         self.current_symbol_index = -1
         self.scope_stack = []    
      
-    def set_symbol_type(self, type: str):
+    def set_symbol_id(self, id: str):
         self.current_symbol_index += 1
+        self.symbols_table[self.current_symbol_index].symbol_id = id
+
+    def set_symbol_type(self, type: str):
         self.symbols_table[self.current_symbol_index].type = type
 
     # ---------SCOPE FUNCTIONS---------
@@ -43,8 +46,8 @@ class Parser:
     
     def is_function_scope(self, scope):
         for symbol in self.symbols_table:
-            print("TIPO:  ",symbol.type," SCOPE:", scope)
-            if(symbol.type == "FUNCTION_NAME" and str(symbol.lexeme) in scope):
+            print("TIPO:  ",symbol.symbol_id," SCOPE:", scope)
+            if(symbol.symbol_id == "FUNCTION_NAME" and str(symbol.lexeme) in scope):
                 return True
         return False
 
@@ -66,7 +69,7 @@ class Parser:
     def is_function_or_procedure(self, identifier: str):
         for symbol in self.symbols_table:
             if (symbol.lexeme == identifier):
-                return symbol.type
+                return symbol.symbol_id
         return None
         
 
@@ -117,7 +120,7 @@ class Parser:
             raise ParserException(missing_token_exception_message("program"), token.line)
 
         identifier = self.identifier()
-        self.set_symbol_type('PROGRAM_NAME')
+        self.set_symbol_id('PROGRAM_NAME')
         self.push_new_scope(identifier) # add to scope stack 
 
         if (not self.read_token().token == "OPEN_BRACKET"): #read {
@@ -160,7 +163,7 @@ class Parser:
             raise ParserException('Faltou fator', token.line)
         
         if (not function_call and self.is_identifier(token)): # a variable identifier was used
-            self.set_symbol_type("VARIABLE_NAME")
+            self.set_symbol_id("VARIABLE_NAME")
             self.set_valid_identifier_scope()
         
     def term(self): # ok ?
@@ -208,6 +211,8 @@ class Parser:
         token = self.read_token()
         if (not (token.token == 'INT_TYPE' or token.token == 'BOOL_TYPE')):
             raise ParserException(f"Tipo {token.lexeme} inválido", token.line)
+
+        return token
     
     def var_declaration_block(self): # ok
         look_ahead = self.look_ahead()
@@ -219,20 +224,20 @@ class Parser:
         self.type()
         self.identifier()
 
-        self.set_symbol_type("VARIABLE_NAME")
+        self.set_symbol_id("VARIABLE_NAME")
         self.set_symbol_scope()
 
         while (self.look_ahead().lexeme==','):
             self.read_token() # read ,
             self.identifier()
-            self.set_symbol_type("VARIABLE_NAME")
+            self.set_symbol_id("VARIABLE_NAME")
 
         self.semicolon()  
 
     def parameter(self): # ok
         self.type() 
         self.identifier()
-        self.set_symbol_type("VARIABLE_NAME")
+        self.set_symbol_id("VARIABLE_NAME")
         self.set_symbol_scope()
 
     def parameters_list(self): # ok
@@ -250,7 +255,7 @@ class Parser:
             raise ParserException(f"Verificação com look ahead??? Era pra ler o proc", token.line)
         
         identifier = self.identifier()
-        self.set_symbol_type("PROCEDURE_NAME")
+        self.set_symbol_id("PROCEDURE_NAME")
         self.set_symbol_scope()
         self.push_new_scope(identifier) # add to scope stack
 
@@ -282,10 +287,11 @@ class Parser:
         if (not token.token == "HEADER_FUNC"):
             raise ParserException(f"Verificação com look ahead??? Era pra ler o func", token.line)
         
-        self.type()
+        type_token = self.type()
         identifier = self.identifier()
-        self.set_symbol_type("FUNCTION_NAME")
+        self.set_symbol_id("FUNCTION_NAME")
         self.set_symbol_scope()
+        self.set_symbol_type(type_token.token)
         self.push_new_scope(identifier) # add to scope stack
 
         token = self.read_token() # read (
@@ -315,13 +321,14 @@ class Parser:
 
     # --------START COMMAND--------
     def commands(self): # ok
+        previous_read_token = self.look_ahead().token
         self.command()
         while (self.look_ahead().token != "CLOSE_BRACKET"):
-            temp = self.look_ahead().token
+            previous_read_token = self.look_ahead().token
             self.command()
             
-        #if the current scope is a function, and the last saved command wasn't a return, throw an error
-        if (self.is_function_scope(self.scope_stack[-1]) and not(temp == "RETURN")):
+        #if the current scope is a function, and the previous saved command wasn't a return, throw an error
+        if (self.is_function_scope(self.scope_stack[-1]) and not(previous_read_token == "RETURN")):
             raise ParserException(missing_token_exception_message("return"), self.tokens[self.current_token_index].line)
 
     def command(self):
@@ -353,7 +360,7 @@ class Parser:
 
     def var_attribution(self): # ok
         self.identifier()
-        self.set_symbol_type("VARIABLE_NAME")
+        self.set_symbol_id("VARIABLE_NAME")
         self.set_valid_identifier_scope()
 
         assign_op = self.read_token() # read =
@@ -443,7 +450,7 @@ class Parser:
     def sub_routine_call(self): # ok
         self.identifier()
         sub_routine_type = self.is_function_or_procedure(self.tokens[self.current_token_index].lexeme)
-        self.set_symbol_type(sub_routine_type)
+        self.set_symbol_id(sub_routine_type)
         self.set_valid_identifier_scope()
 
         token = self.read_token() # read (
@@ -466,7 +473,7 @@ class Parser:
     # only being called inside expression because outside an expression functions are called through sub_routine_call
     def function_call(self, in_expression = False): # ok 
         self.identifier()
-        self.set_symbol_type("FUNCTION_NAME")
+        self.set_symbol_id("FUNCTION_NAME")
         self.set_valid_identifier_scope()
 
         token = self.read_token() # read (

@@ -1,7 +1,7 @@
 program ola{
   int x ;
 
-  func int myProc(int a, int b) {
+  func int myFunc(int a, int b) {
     int y;
     x = 2 + x + y;
 
@@ -14,7 +14,9 @@ program ola{
     return x;
   }
 
-  
+  func bool boleana() {
+    return true;
+  }
 
     proc outroProc(int a, int b) {
       x = 3;
@@ -22,7 +24,7 @@ program ola{
      
     }
 
-  x =2+myProc();
-  myProc();
+  x =2+myFunc();
+  myFunc();
   
 }
