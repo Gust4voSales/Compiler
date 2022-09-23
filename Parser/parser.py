@@ -1,3 +1,4 @@
+from logging import raiseExceptions
 from Parser.ParserException import ParserException, missing_token_exception_message
 from Token import Token
 from Symbol import Symbol
@@ -39,6 +40,24 @@ class Parser:
 
         if not scope_found:
             raise ParserException("Indentificar utilizado não foi declarado no escopo atual", current_symbol.line)
+    
+    def is_function_scope(self, scope):
+        for symbol in self.symbols_table:
+            print("TIPO:  ",symbol.type," SCOPE:", scope)
+            if(symbol.type == "FUNCTION_NAME" and str(symbol.lexeme) in scope):
+                return True
+        return False
+
+    def check_valid_scope_return(self):
+        fuction_scope_found = False
+        for scope in self.scope_stack[::-1]:
+            print("AQUI:  ",scope)
+            if(self.is_function_scope(scope)):         
+                fuction_scope_found = True
+                break
+        if not fuction_scope_found:
+            raise ParserException("Return fora de função", self.tokens[self.current_token_index].line)
+
 
     # ---------END SCOPE FUNCTIONS---------
 
@@ -142,7 +161,6 @@ class Parser:
         
         if (not function_call and self.is_identifier(token)): # a variable identifier was used
             self.set_symbol_type("VARIABLE_NAME")
-            print(token.line)
             self.set_valid_identifier_scope()
         
     def term(self): # ok ?
@@ -267,6 +285,7 @@ class Parser:
         self.type()
         identifier = self.identifier()
         self.set_symbol_type("FUNCTION_NAME")
+        self.set_symbol_scope()
         self.push_new_scope(identifier) # add to scope stack
 
         token = self.read_token() # read (
@@ -284,6 +303,7 @@ class Parser:
             raise ParserException(missing_token_exception_message("{"), token.line)
         
         self.sub_routine_body()
+        
 
         token = self.read_token() # read }
         if (not token.token == "CLOSE_BRACKET"):
@@ -297,8 +317,12 @@ class Parser:
     def commands(self): # ok
         self.command()
         while (self.look_ahead().token != "CLOSE_BRACKET"):
-            
+            temp = self.look_ahead().token
             self.command()
+            
+        #if the current scope is a function, and the last saved command wasn't a return, throw an error
+        if (self.is_function_scope(self.scope_stack[-1]) and not(temp == "RETURN")):
+            raise ParserException(missing_token_exception_message("return"), self.tokens[self.current_token_index].line)
 
     def command(self):
         look_ahead_token = self.look_ahead()
@@ -409,6 +433,8 @@ class Parser:
 
     def return_command(self): # ok
         token = self.read_token() #read return
+        self.check_valid_scope_return()
+
         if(not token.token == "RETURN"):
             raise ParserException(missing_token_exception_message("return"), token.line)
         self.expression()
@@ -441,6 +467,7 @@ class Parser:
     def function_call(self, in_expression = False): # ok 
         self.identifier()
         self.set_symbol_type("FUNCTION_NAME")
+        self.set_valid_identifier_scope()
 
         token = self.read_token() # read (
         if (not token.token == 'OPEN_PARENTHESES'):
