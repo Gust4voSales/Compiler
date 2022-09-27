@@ -42,26 +42,39 @@ class Parser:
                     break
 
         if not scope_found:
-            raise ParserException("Indentificar utilizado não foi declarado no escopo atual", current_symbol.line)
+            raise ParserException("Indentificador utilizado não foi declarado no escopo atual", current_symbol.line)
     
+    # check if the the given scope is a function in the symbols table
     def is_function_scope(self, scope):
         for symbol in self.symbols_table:
-            print("TIPO:  ",symbol.symbol_id," SCOPE:", scope)
             if(symbol.symbol_id == "FUNCTION_NAME" and str(symbol.lexeme) in scope):
                 return True
         return False
 
+    # check if the return is outside a function, then throws an error
     def check_valid_scope_return(self):
         fuction_scope_found = False
         for scope in self.scope_stack[::-1]:
-            print("AQUI:  ",scope)
             if(self.is_function_scope(scope)):         
                 fuction_scope_found = True
                 break
         if not fuction_scope_found:
             raise ParserException("Return fora de função", self.tokens[self.current_token_index].line)
 
+    # check if there is another symbol declaration in the same scope
+    def check_unique_symbol_scope(self):
+        actual_symbol = self.symbols_table[self.current_symbol_index]
+        actual_scope = self.scope_stack[-1]
 
+        sliced_symbols_reversed = self.symbols_table[:self.current_symbol_index][::-1]
+
+        for symbol in sliced_symbols_reversed:
+            # TODO BREAK acontencendo sempre que tem um parametro na função (estamos percorrendo o negosso errando)
+            print(symbol, '-->', actual_scope)
+            # if (symbol.scope != actual_scope):
+            #     break
+            if (symbol.lexeme==actual_symbol.lexeme and symbol.scope == actual_scope):
+                raise ParserException('Declaração repetida', actual_symbol.line)
     # ---------END SCOPE FUNCTIONS---------
 
     # helper function to check (based on id) if sub_routine is a function or a procedure when called to put correct type
@@ -71,7 +84,6 @@ class Parser:
             if (symbol.lexeme == identifier):
                 return symbol.symbol_id
         return None
-        
 
     def look_ahead(self, quantity=1):
         self.current_token_index += quantity
@@ -221,11 +233,13 @@ class Parser:
             look_ahead = self.look_ahead()
 
     def var_declaration(self): # ok
-        self.type()
+        token_type = self.type()
         self.identifier()
 
         self.set_symbol_id("VARIABLE_NAME")
+        self.set_symbol_type(token_type.token)
         self.set_symbol_scope()
+        self.check_unique_symbol_scope()
 
         while (self.look_ahead().lexeme==','):
             self.read_token() # read ,
@@ -257,6 +271,7 @@ class Parser:
         identifier = self.identifier()
         self.set_symbol_id("PROCEDURE_NAME")
         self.set_symbol_scope()
+        self.check_unique_symbol_scope()
         self.push_new_scope(identifier) # add to scope stack
 
         token = self.read_token() # read (
@@ -292,6 +307,7 @@ class Parser:
         self.set_symbol_id("FUNCTION_NAME")
         self.set_symbol_scope()
         self.set_symbol_type(type_token.token)
+        self.check_unique_symbol_scope()
         self.push_new_scope(identifier) # add to scope stack
 
         token = self.read_token() # read (

@@ -28,10 +28,10 @@ try:
 
   parser.program()
 
-  print("---------------------TOKENS---------------------")
-  for token in tokens:
-    print(token)
-  print('\n')
+  # print("---------------------TOKENS---------------------")
+  # for token in tokens:
+  #   print(token)
+  # print('\n')
 
   print("---------------------Tabela de Simbolos---------------------")
   for s in parser.symbols_table:
