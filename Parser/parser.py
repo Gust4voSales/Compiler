@@ -249,10 +249,12 @@ class Parser:
         self.semicolon()  
 
     def parameter(self): # ok
-        self.type() 
+        token_type= self.type() 
         self.identifier()
         self.set_symbol_id("VARIABLE_NAME")
+        self.set_symbol_type(token_type.token)
         self.set_symbol_scope()
+        self.check_unique_symbol_scope()
 
     def parameters_list(self): # ok
         look_ahead = self.look_ahead()
