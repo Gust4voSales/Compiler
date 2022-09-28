@@ -1,14 +1,16 @@
 program ola{
 
-  func int myFunc() {
-
+  bool variavel;
+  func int myFunc(int x) {
+  
     return 1;
-    print(true);
+   
   }
 
 
-  proc myProc() {
+  proc myProc(bool teste, int teste) {
     int x;
+  
    x=2;
 
    while(true){
@@ -18,5 +20,5 @@ program ola{
   } 
 
 
-  print(x);
+  print(2);
 }
