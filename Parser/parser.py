@@ -1,7 +1,8 @@
-from logging import raiseExceptions
 from Parser.ParserException import ParserException, missing_token_exception_message
 from Token import Token
 from Symbol import Symbol
+from utils.check_token import * 
+import three_address_code as three_addrs_code 
 
 class Parser:
     def __init__(self, tokens:list[Token], symbols_table:list[Symbol]) -> None:
@@ -10,6 +11,9 @@ class Parser:
         self.current_token_index = -1
         self.current_symbol_index = -1
         self.scope_stack = []    
+
+        self.is_inside_expression = False
+        self.current_expression_tokens = []
      
     def set_symbol_id(self, id: str):
         self.current_symbol_index += 1
@@ -69,10 +73,6 @@ class Parser:
         sliced_symbols_reversed = self.symbols_table[:self.current_symbol_index][::-1]
 
         for symbol in sliced_symbols_reversed:
-            # TODO BREAK acontencendo sempre que tem um parametro na função (estamos percorrendo o negosso errando)
-            print(symbol, '-->', actual_scope)
-            # if (symbol.scope != actual_scope):
-            #     break
             if (symbol.lexeme==actual_symbol.lexeme and symbol.scope == actual_scope):
                 raise ParserException('Declaração repetida', actual_symbol.line)
     # ---------END SCOPE FUNCTIONS---------
@@ -98,19 +98,16 @@ class Parser:
     def read_token(self):
         self.current_token_index += 1
         if (self.current_token_index <= len(self.tokens)-1):
-            return self.tokens[self.current_token_index]   
+            token = self.tokens[self.current_token_index]
+            
+            # TODO abstract later
+            if (self.is_inside_expression):
+                self.current_expression_tokens.append(token)
+
+            return token 
         else:
             self.current_token_index -= 1
             return Token(token='EMPTY', lexeme='', line=-99999)
-
-    def is_identifier(self, token: Token):
-        return token.token == 'IDENTIFIER'
-    def is_boolean(self, token: Token):
-        return (token.token == 'TRUE' or token.token == 'FALSE')
-    def is_number(self, token: Token):
-        return token.token == 'NUMERIC'
-    def is_relation_op(self, token: Token):
-        return (token.lexeme == '!=' or token.lexeme == '==' or token.lexeme == '<' or token.lexeme == '<=' or token.lexeme == '>' or token.lexeme == '>=')
 
     def semicolon(self): #ok
         token = self.read_token()
@@ -119,7 +116,7 @@ class Parser:
 
     def identifier(self): # ok
         identifier = self.read_token() # read identifier
-        if (not self.is_identifier(identifier)):
+        if (not is_identifier(identifier)):
             raise ParserException(f"{identifier.lexeme} não é um nome de identificador válido", identifier.line)
         
         return identifier
@@ -167,14 +164,13 @@ class Parser:
             token = self.read_token()  
             if (not (token.lexeme==')')):
                 raise ParserException(missing_token_exception_message(")"), token.line)
-        elif(self.is_identifier(token) and self.look_ahead().token == "OPEN_PARENTHESES"):
-            self.current_token_index-=1
+        elif(is_identifier(token) and self.look_ahead().token == "OPEN_PARENTHESES"):
             self.function_call(True)
             function_call = True
-        elif (not (self.is_identifier(token) or self.is_number(token) or self.is_boolean(token)) ):
+        elif (not (is_identifier(token) or is_number(token) or is_boolean(token)) ):
             raise ParserException('Faltou fator', token.line)
         
-        if (not function_call and self.is_identifier(token)): # a variable identifier was used
+        if (not function_call and is_identifier(token)): # a variable identifier was used
             self.set_symbol_id("VARIABLE_NAME")
             self.set_valid_identifier_scope()
         
@@ -203,7 +199,7 @@ class Parser:
     def expression(self): # ok?
         self.simple_expression()
 
-        if (self.is_relation_op(self.look_ahead())):
+        if (is_relation_op(self.look_ahead())):
             self.read_token() # read relational op
             self.expression()
 
@@ -399,7 +395,12 @@ class Parser:
         elif(not self.read_token().token == "OPEN_PARENTHESES"): #read (
             raise ParserException(missing_token_exception_message("("), token.line)
 
+        # TODO abstract later
+        self.is_inside_expression = True
         self.expression()
+        self.is_inside_expression = False
+        three_addrs_code.parseExpression(self.current_expression_tokens)
+        self.current_expression_tokens = ''
 
         if (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
             raise ParserException(missing_token_exception_message(")"), token.line)
@@ -490,7 +491,8 @@ class Parser:
 
     # only being called inside expression because outside an expression functions are called through sub_routine_call
     def function_call(self, in_expression = False): # ok 
-        self.identifier()
+        if not in_expression:
+            self.identifier()
         self.set_symbol_id("FUNCTION_NAME")
         self.set_valid_identifier_scope()
 
@@ -553,4 +555,5 @@ class Parser:
             
             self.scope_stack.pop()
 
+    # --------END COMMAND--------
     

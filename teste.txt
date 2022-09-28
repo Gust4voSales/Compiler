@@ -7,18 +7,11 @@ program ola{
    
   }
 
-
-  proc myProc(bool teste, int teste) {
+  proc myProc2(bool teste, int test2e) {
     int x;
-  
-   x=2;
+    x=+2;
 
-   while(true){
-    int x;
-    print(x);
-   }
   } 
 
-
-  print(2);
+  print(2 <= true + 2 * 6 * 5 / 2);
 }
