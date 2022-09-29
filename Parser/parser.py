@@ -14,13 +14,21 @@ class Parser:
 
         self.is_inside_expression = False
         self.current_expression_tokens = []
-     
+    
+    # ---------START 3-ADDRESS-CODE FUNCTIONS---------
+    def reset_expression_vars(self):
+        self.is_inside_expression = False
+        self.current_expression_tokens = []
+    # ---------END OF 3-ADDRESS-CODE FUNCTIONS---------
+    
+    # ---------START SYMBOL TABLE FUNCTIONS---------
     def set_symbol_id(self, id: str):
         self.current_symbol_index += 1
         self.symbols_table[self.current_symbol_index].symbol_id = id
 
     def set_symbol_type(self, type: str):
         self.symbols_table[self.current_symbol_index].type = type
+    # ---------END SYMBOL TABLE FUNCTIONS---------
 
     # ---------SCOPE FUNCTIONS---------
     def push_new_scope(self, token: Token):
@@ -100,7 +108,6 @@ class Parser:
         if (self.current_token_index <= len(self.tokens)-1):
             token = self.tokens[self.current_token_index]
             
-            # TODO abstract later
             if (self.is_inside_expression):
                 self.current_expression_tokens.append(token)
 
@@ -398,9 +405,8 @@ class Parser:
         # TODO abstract later
         self.is_inside_expression = True 
         self.expression()
-        self.is_inside_expression = False
         three_addrs_code.parseExpression(self.current_expression_tokens)
-        self.current_expression_tokens = []
+        self.reset_expression_vars()
 
         if (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
             raise ParserException(missing_token_exception_message(")"), token.line)
