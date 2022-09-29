@@ -400,7 +400,7 @@ class Parser:
         self.expression()
         self.is_inside_expression = False
         three_addrs_code.parseExpression(self.current_expression_tokens)
-        self.current_expression_tokens = ''
+        self.current_expression_tokens = []
 
         if (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
             raise ParserException(missing_token_exception_message(")"), token.line)
