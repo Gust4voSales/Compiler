@@ -1,11 +1,20 @@
 from Token import Token
 
 temp_index = 0
-expression=[]
 
-def generate_temp_expressions(expression_tokens_list, precedence_operator: str):
+def generate_temp_expressions(expression_tokens_list: list[Token], precedence_operator: str):
   global temp_index
   new_expressions_tokens_list = []
+
+  # if the expression is of only one factor and it is a temp, don't do anything. Eg: temp5
+  if len(expression_tokens_list)==1 and 'temp' in expression_tokens_list[0].lexeme and expression_tokens_list[0].token == None:
+    return []
+
+  # expression of only one factor. Eg.: print(2);
+  if (len(expression_tokens_list)==1):
+    print(f'temp{temp_index} = {expression_tokens_list[0].lexeme}')
+    temp_index += 1
+    return []
 
   for index, token in enumerate(expression_tokens_list):
     # if the token with precedence has been found we need to save the expression using it in an temp 
@@ -30,10 +39,68 @@ def generate_temp_expressions(expression_tokens_list, precedence_operator: str):
   
   return new_expressions_tokens_list
 
+def generate_function_parameters(expression_tokens_list: list[Token], index: int):
+  global temp_index
+  
+  temp_params: list[str] = []
 
+  params: list[Token] = [] 
+  n_params = 0
+
+  # if there are parameters
+  if not expression_tokens_list[index+2].token == "CLOSE_PARENTHESES":
+    # iterate through tokens 
+    for token_expression_param in expression_tokens_list[index+2:]:
+      # end of parameters list
+      if token_expression_param.token == "CLOSE_PARENTHESES":
+        break
+      
+      # another parameter expression found, so we execute the first parameters expression and then keep going
+      if (token_expression_param.token == "COMMA"):
+        parseExpression(params)
+        temp_params.append(f'param temp{temp_index-1}')
+        params = []
+        continue
+      
+      params.append(token_expression_param)
+
+    # execute the parameter
+    parseExpression(params)
+    temp_params.append(f'param temp{temp_index-1}')
+
+
+  return temp_params
+
+def generate_function_call(expression_tokens_list: list[Token]):
+  global temp_index
+
+  for index, token in enumerate(expression_tokens_list):
+    if (token.token == "IDENTIFIER"):
+      is_last_token = index == len(expression_tokens_list)-1
+      if (not is_last_token and expression_tokens_list[index+1].token == "OPEN_PARENTHESES"):
+        # if we have parameters then call parse expressions for each one
+        temp_params = generate_function_parameters(expression_tokens_list, index)
+
+        # execute function and replace its call for temp
+        for temp_param in temp_params:
+          print(temp_param)
+        print(f"temp{temp_index} = call {token.lexeme}, {len(temp_params)}")
+        temp_index += 1
+        
+        expression_tokens_list[index] = Token(lexeme=f'temp{temp_index-1}', token=None, line=None)
+
+        # delete everything between the ( ) and the ( ) as well
+        for token in expression_tokens_list[index+1:]:
+          if token.token == "CLOSE_PARENTHESES":
+            del expression_tokens_list[index+1]
+            break
+
+          del expression_tokens_list[index+1]
 
 def parseExpression(expression_tokens_list: list[Token]):
-  # expression separated by delimiters
+  # check if there are functions calls and execute function calls first
+  generate_function_call(expression_tokens_list)
+
   precedence_operator_order = ['MULT',
   'DIV',
   'ADD',
@@ -79,4 +146,3 @@ def parseExpression(expression_tokens_list: list[Token]):
 
 
  
-  

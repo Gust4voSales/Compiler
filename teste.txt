@@ -1,10 +1,15 @@
 program ola{
 
   bool variavel;
+  bool temp;
   func int myFunc(int x) {
   
     return 1;
    
+  }
+  func int myFunc2(int x) {
+  
+    return 1;
   }
 
   proc myProc2(bool teste, int test2e) {
@@ -14,5 +19,5 @@ program ola{
   } 
 
  variavel=((2 + 2+(3/2)) * 6 < 100);
-  print((2 + 2+(3/2)) * 6 < 100);
+  print(2 + 2 - myFunc(2 + 2, 3/2 && true));
 }

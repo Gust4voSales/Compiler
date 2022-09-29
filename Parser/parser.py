@@ -396,7 +396,7 @@ class Parser:
             raise ParserException(missing_token_exception_message("("), token.line)
 
         # TODO abstract later
-        self.is_inside_expression = True
+        self.is_inside_expression = True 
         self.expression()
         self.is_inside_expression = False
         three_addrs_code.parseExpression(self.current_expression_tokens)
