@@ -148,12 +148,12 @@ def generate_function_call(expression_tokens_list: list[Token]):
         for temp_param in temp_params: # for i in temp_params print param temp_i (used to call the function)
           print(temp_param)
         print(f"temp{temp_index} = call {token.lexeme}, {len(temp_params)}")
-        temp_index += 1
         
         expression_token = Token(lexeme = f'temp{temp_index}', token=None, line=token.line) # creating temp Token
         temp_token = ExpressionToken(expression_token, token.type) # converting our temp Token to ExpressionToken
         expression_tokens_list[index] = temp_token
         temp_list.append(temp_token) # add temp ExpressionToken to our temp_list
+        temp_index += 1 
 
         # delete everything between the ( ) and the ( ) as well
         for token in expression_tokens_list[index+1:]:
@@ -164,10 +164,7 @@ def generate_function_call(expression_tokens_list: list[Token]):
           del expression_tokens_list[index+1]
 
 def parseExpression(expression_tokens_list: list[Token]):
-  # for t in expression_tokens_list:
-  #   print(t)
-
-  # print('-------')
+  global temp_index
   # check if there are functions calls and execute function calls first
   generate_function_call(expression_tokens_list)
 
