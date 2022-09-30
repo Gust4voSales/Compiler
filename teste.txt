@@ -2,7 +2,7 @@ program ola{
 
   int varInt;
   bool varBool;
-  func int myFunc(int x) {
+  func int myFunc(int x, bool y) {
   
     return 1;
    
@@ -19,5 +19,5 @@ program ola{
   } 
 
 
-  print(myFunc()+2);
+  print(myFunc(2, true && 2<=4) + 2);
 }

@@ -16,7 +16,6 @@ class Parser:
         self.is_inside_expression = False
         self.current_expression_tokens = []
     
-
     # ---------START 3-ADDRESS-CODE FUNCTIONS---------
     def reset_expression_vars(self):
         self.is_inside_expression = False
@@ -31,7 +30,6 @@ class Parser:
                     return symbol.type
         print("COMO????????????????????????????????????????")
         return None
-        
         
     # ---------END OF 3-ADDRESS-CODE FUNCTIONS---------
     
@@ -101,10 +99,10 @@ class Parser:
 
     # helper function to check (based on id) if sub_routine is a function or a procedure when called to put correct type
     # in symbols table
-    def is_function_or_procedure(self, identifier: str):
+    def get_symbol_from_identifier(self, identifier: str):
         for symbol in self.symbols_table:
             if (symbol.lexeme == identifier):
-                return symbol.symbol_id
+                return symbol
         return None
 
     def look_ahead(self, quantity=1):
@@ -124,7 +122,11 @@ class Parser:
             
             if (self.is_inside_expression):
                 if is_identifier(token):
-                    self.current_expression_tokens.append(ExpressionToken(token,self.get_identifier_type_from_token(token)))
+                    symbol = self.get_symbol_from_identifier(token.lexeme)
+                    if symbol.symbol_id == "FUNCTION_NAME" or symbol.symbol_id == "PROCEDURE_NAME":
+                        self.current_expression_tokens.append(ExpressionToken(token,self.get_identifier_type_from_token(token), symbol.parameters_type))
+                    else:
+                        self.current_expression_tokens.append(ExpressionToken(token,self.get_identifier_type_from_token(token)))
                 else:
                     self.current_expression_tokens.append(ExpressionToken(token))
                 
@@ -269,7 +271,7 @@ class Parser:
 
         self.semicolon()  
 
-    def parameter(self): # ok
+    def parameter(self, subroutine_symbol_index: int): # ok
         token_type= self.type() 
         self.identifier()
         self.set_symbol_id("VARIABLE_NAME")
@@ -277,13 +279,16 @@ class Parser:
         self.set_symbol_scope()
         self.check_unique_symbol_scope()
 
-    def parameters_list(self): # ok
+        # add its type to the subroutines parameters_list_type 
+        self.symbols_table[subroutine_symbol_index].parameters_type.append(token_type.token)
+
+    def parameters_list(self, subroutine_symbol_index: int): # ok
         look_ahead = self.look_ahead()
         if (look_ahead.token == "BOOL_TYPE" or look_ahead.token == "INT_TYPE"):
-            self.parameter()  
+            self.parameter(subroutine_symbol_index)  
             while (self.look_ahead().lexeme==','):
                 self.read_token() # read ,
-                self.parameter()
+                self.parameter(subroutine_symbol_index)
   
     def procedure_declaration(self): # ok 
         token = self.read_token() # read proc
@@ -301,7 +306,7 @@ class Parser:
         if (not token.token == "OPEN_PARENTHESES"):
             raise ParserException(missing_token_exception_message("("), token.line)
         
-        self.parameters_list()
+        self.parameters_list(self.current_symbol_index)
 
         token = self.read_token() # read )
         if (not token.token == "CLOSE_PARENTHESES"):
@@ -337,7 +342,7 @@ class Parser:
         if (not token.token == "OPEN_PARENTHESES"):
             raise ParserException(missing_token_exception_message("("), token.line)
         
-        self.parameters_list()
+        self.parameters_list(self.current_symbol_index)
 
         token = self.read_token() # read )
         if (not token.token == "CLOSE_PARENTHESES"):
@@ -493,7 +498,7 @@ class Parser:
 
     def sub_routine_call(self): # ok
         self.identifier()
-        sub_routine_type = self.is_function_or_procedure(self.tokens[self.current_token_index].lexeme)
+        sub_routine_type = self.get_symbol_from_identifier(self.tokens[self.current_token_index].lexeme).symbol_id
         self.set_symbol_id(sub_routine_type)
         self.set_valid_identifier_scope()
 

@@ -4,14 +4,14 @@ from Token import Token
 from utils.check_token import is_boolean, is_relation_op, is_number
 
 temp_index = 0
-temp_list = []
+temp_list: list[ExpressionToken] = []
 
 # get the type operation related with the operator
 def get_operator_type(operator: Token):
   # arithmetics and relation operations
-  if operator.token == "ADD" or operator.token == "LESS" or operator.token == "MULT" or operator.token == "DIV" or is_relation_op(operator):
+  if operator.token == "ADD" or operator.token == "LESS" or operator.token == "MULT" or operator.token == "DIV":
     return "INT_TYPE" 
-  else: # boolean operations (&& and ||)
+  else: # boolean operations (&& and ||) and (<= == !=) etc...
     return "BOOL_TYPE"
 
 # check if the operands used in the curret operation have the proper types, otherwise throw erro
@@ -27,7 +27,6 @@ def check_operands_type(op1: ExpressionToken, op2: ExpressionToken, operator: To
 
   # a relational operation with op1 or op2 being of type BOOL should throw error
   elif is_relation_op(operator):
-    #print(isinstance(op1, ExpressionToken), isinstance(op2, ExpressionToken))
     if isinstance(op1, ExpressionToken) and op1.type == "BOOL_TYPE": 
       raise ParserException("Tipo inteiro inválido neste tipo de operação", op1.line)
     if isinstance(op2, ExpressionToken) and op2.type == "BOOL_TYPE":
@@ -37,7 +36,6 @@ def check_operands_type(op1: ExpressionToken, op2: ExpressionToken, operator: To
 
   # a boolean operation with op1 or op2 being of type INT should throw error
   elif operator.token =="AND" or operator.token=="OR":
-    print(isinstance(op1, ExpressionToken), isinstance(op2, ExpressionToken))
     if isinstance(op1, ExpressionToken) and op1.type == "INT_TYPE": 
       raise ParserException("Tipo inteiro inválido neste tipo de operação", op1.line)
     if isinstance(op2, ExpressionToken) and op2.type == "INT_TYPE":
@@ -55,8 +53,15 @@ def generate_temp_expressions(expression_tokens_list: list[Token], precedence_op
 
   # expression of only one factor. Eg.: print(2);
   if (len(expression_tokens_list)==1):
-    print(f'temp{temp_index} = {expression_tokens_list[0].lexeme}')
+    token = expression_tokens_list[0]
+    print(f'temp{temp_index} = {token.lexeme}')
+    
+    if (is_number(token)):
+      temp_list.append(ExpressionToken(token=token, type="INT_TYPE")) # add temp ExpressionToken to our temp_list
+    else:
+      temp_list.append(ExpressionToken(token=token, type="BOOL_TYPE")) # add temp ExpressionToken to our temp_list
     temp_index += 1
+
     return []
 
   for index, token in enumerate(expression_tokens_list):
@@ -82,6 +87,7 @@ def generate_temp_expressions(expression_tokens_list: list[Token], precedence_op
       type = get_operator_type(token)
       temp_token = ExpressionToken(expression_token, type) # converting our temp Token to ExpressionToken
       new_expressions_tokens_list.append(temp_token)
+      temp_list.append(temp_token) # add temp ExpressionToken to our temp_list
       temp_index+=1
     else:
       new_expressions_tokens_list.append(token)
@@ -89,12 +95,14 @@ def generate_temp_expressions(expression_tokens_list: list[Token], precedence_op
   
   return new_expressions_tokens_list
 
-def generate_function_parameters(expression_tokens_list: list[Token], index: int):
-  global temp_index
+def generate_function_parameters(expression_tokens_list: list[Token], index: int, parameters_type_list: list[str]):
+  global temp_index, temp_list
   
   temp_params: list[str] = []
 
   params: list[Token] = [] 
+  params_index = 0
+ 
   # if there are parameters
   if not expression_tokens_list[index+2].token == "CLOSE_PARENTHESES":
     # iterate through tokens 
@@ -107,7 +115,11 @@ def generate_function_parameters(expression_tokens_list: list[Token], index: int
       if (token_expression_param.token == "COMMA"):
         parseExpression(params)
         temp_params.append(f'param temp{temp_index-1}')
+        print('tipo --> ', temp_list[-1]) 
+        if (parameters_type_list[params_index] != temp_list[-1].type):
+          raise ParserException(f"Tipo de parâmetro inválido. Esperado {parameters_type_list[params_index]}", line=temp_list[-1].line)
         params = []
+        params_index += 1
         continue
       
       params.append(token_expression_param)
@@ -115,21 +127,25 @@ def generate_function_parameters(expression_tokens_list: list[Token], index: int
     # execute the parameter
     parseExpression(params)
     temp_params.append(f'param temp{temp_index-1}')
+    print('tipo --> ', temp_list[-1]) 
+    if (parameters_type_list[params_index] != temp_list[-1].type):
+      raise ParserException(f"Tipo de parâmetro inválido. Esperado {parameters_type_list[params_index]}", line=temp_list[-1].line)
 
   return temp_params
 
 def generate_function_call(expression_tokens_list: list[Token]):
-  global temp_index
+  global temp_index, temp_list
 
   for index, token in enumerate(expression_tokens_list):
     if (token.token == "IDENTIFIER"):
       is_last_token = index == len(expression_tokens_list)-1
-      if (not is_last_token and expression_tokens_list[index+1].token == "OPEN_PARENTHESES"):
+      # function found
+      if (not is_last_token and expression_tokens_list[index+1].token == "OPEN_PARENTHESES"):      
         # if we have parameters then call parse expressions for each one
-        temp_params = generate_function_parameters(expression_tokens_list, index)
+        temp_params = generate_function_parameters(expression_tokens_list, index, token.parameters_type)
 
         # execute function and replace its call for temp
-        for temp_param in temp_params:
+        for temp_param in temp_params: # for i in temp_params print param temp_i (used to call the function)
           print(temp_param)
         print(f"temp{temp_index} = call {token.lexeme}, {len(temp_params)}")
         temp_index += 1
@@ -137,6 +153,7 @@ def generate_function_call(expression_tokens_list: list[Token]):
         expression_token = Token(lexeme = f'temp{temp_index}', token=None, line=token.line) # creating temp Token
         temp_token = ExpressionToken(expression_token, token.type) # converting our temp Token to ExpressionToken
         expression_tokens_list[index] = temp_token
+        temp_list.append(temp_token) # add temp ExpressionToken to our temp_list
 
         # delete everything between the ( ) and the ( ) as well
         for token in expression_tokens_list[index+1:]:
@@ -147,6 +164,10 @@ def generate_function_call(expression_tokens_list: list[Token]):
           del expression_tokens_list[index+1]
 
 def parseExpression(expression_tokens_list: list[Token]):
+  # for t in expression_tokens_list:
+  #   print(t)
+
+  # print('-------')
   # check if there are functions calls and execute function calls first
   generate_function_call(expression_tokens_list)
 
