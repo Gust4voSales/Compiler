@@ -3,6 +3,7 @@ from Token import Token
 from Symbol import Symbol
 from utils.check_token import * 
 import three_address_code as three_addrs_code 
+from ExpressionToken import ExpressionToken
 
 class Parser:
     def __init__(self, tokens:list[Token], symbols_table:list[Symbol]) -> None:
@@ -15,10 +16,23 @@ class Parser:
         self.is_inside_expression = False
         self.current_expression_tokens = []
     
+
     # ---------START 3-ADDRESS-CODE FUNCTIONS---------
     def reset_expression_vars(self):
         self.is_inside_expression = False
         self.current_expression_tokens = []
+    
+    def get_identifier_type_from_token(self, token: Token):
+        sliced_symbols_reversed = self.symbols_table[:self.current_symbol_index][::-1]
+
+        for symbol in sliced_symbols_reversed:
+            if (symbol.lexeme == token.lexeme):
+                if (symbol.scope == self.scope_stack[-1]):
+                    return symbol.type
+        print("COMO????????????????????????????????????????")
+        return None
+        
+        
     # ---------END OF 3-ADDRESS-CODE FUNCTIONS---------
     
     # ---------START SYMBOL TABLE FUNCTIONS---------
@@ -109,7 +123,11 @@ class Parser:
             token = self.tokens[self.current_token_index]
             
             if (self.is_inside_expression):
-                self.current_expression_tokens.append(token)
+                if is_identifier(token):
+                    self.current_expression_tokens.append(ExpressionToken(token,self.get_identifier_type_from_token(token)))
+                else:
+                    self.current_expression_tokens.append(ExpressionToken(token))
+                
 
             return token 
         else:
@@ -402,7 +420,8 @@ class Parser:
         elif(not self.read_token().token == "OPEN_PARENTHESES"): #read (
             raise ParserException(missing_token_exception_message("("), token.line)
 
-        # TODO abstract later
+        
+        
         self.is_inside_expression = True 
         self.expression()
         three_addrs_code.parseExpression(self.current_expression_tokens)

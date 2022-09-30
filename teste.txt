@@ -1,7 +1,7 @@
 program ola{
 
-  bool variavel;
-  bool temp;
+  int varInt;
+  bool varBool;
   func int myFunc(int x) {
   
     return 1;
@@ -18,6 +18,6 @@ program ola{
 
   } 
 
- variavel=((2 + 2+(3/2)) * 6 < 100);
-  print(2 + 2 - myFunc(2 + 2, 3/2 && true));
+
+  print(myFunc()+2);
 }
