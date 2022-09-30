@@ -497,7 +497,7 @@ class Parser:
         self.semicolon()            
 
     def sub_routine_call(self): # ok
-        self.identifier()
+        subroutine_identifier = self.identifier()
         sub_routine_type = self.get_symbol_from_identifier(self.tokens[self.current_token_index].lexeme).symbol_id
         self.set_symbol_id(sub_routine_type)
         self.set_valid_identifier_scope()
@@ -505,10 +505,13 @@ class Parser:
         token = self.read_token() # read (
         if (not token.token == 'OPEN_PARENTHESES'):
             raise ParserException(missing_token_exception_message("("), token.line)
-
+        
+        parameters_counter = 0
         look_ahead = self.look_ahead() # check obrigatory ) or optionals expressions (separated by comma)
         while (not look_ahead.token == 'CLOSE_PARENTHESES'):
             self.expression()
+            parameters_counter += 1
+
             look_ahead = self.look_ahead() # check obrigatory ) or optional comma
             if (look_ahead.lexeme == ','):
                 self.read_token() # read ,
@@ -517,6 +520,9 @@ class Parser:
             if (not look_ahead.token == 'CLOSE_PARENTHESES'):
                 raise ParserException(missing_token_exception_message(")"), token.line)
 
+        subroutine_symbol = self.get_symbol_from_identifier(subroutine_identifier.lexeme)
+        if (parameters_counter != len(subroutine_symbol.parameters_type)):
+            raise ParserException("Quantidade de parâmetros passados diferentes da declaração", subroutine_identifier.line)
         self.semicolon()
 
     # only being called inside expression because outside an expression functions are called through sub_routine_call
@@ -525,14 +531,18 @@ class Parser:
             self.identifier()
         self.set_symbol_id("FUNCTION_NAME")
         self.set_valid_identifier_scope()
+        subroutine_identifier = self.symbols_table[self.current_symbol_index]
 
         token = self.read_token() # read (
         if (not token.token == 'OPEN_PARENTHESES'):
             raise ParserException(missing_token_exception_message("("), token.line)
 
+        parameters_counter = 0
         look_ahead = self.look_ahead() # check obrigatory ) or optionals expressions (separated by comma)
         while (not look_ahead.token == 'CLOSE_PARENTHESES'):
             self.expression()
+            parameters_counter += 1
+
             look_ahead = self.look_ahead() # check obrigatory ) or optional comma
             if (look_ahead.lexeme == ','):
                 self.read_token() # read ,
@@ -540,6 +550,10 @@ class Parser:
             token = self.read_token() # read )
             if (not look_ahead.token == 'CLOSE_PARENTHESES'):
                 raise ParserException(missing_token_exception_message(")"), token.line)
+
+        subroutine_symbol = self.get_symbol_from_identifier(subroutine_identifier.lexeme)
+        if (parameters_counter != len(subroutine_symbol.parameters_type)):
+            raise ParserException("Quantidade de parâmetros passados diferentes da declaração", subroutine_identifier.line)
 
         if(not in_expression):
             self.semicolon()

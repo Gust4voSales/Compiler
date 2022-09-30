@@ -19,5 +19,6 @@ program ola{
   } 
 
 
-  print(myFunc(2, true && 2<=4) + 2);
+  varInt = myFunc(2, 3, 5);
+  print(myFunc(2, true) + 2);
 }
