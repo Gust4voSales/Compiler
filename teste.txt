@@ -18,7 +18,5 @@ program ola{
 
   } 
 
-
-  varInt = myFunc(2, 3, 5);
-  print(myFunc(2, true) + 2);
+  print(true && (2 <= 5) || 5 != 2 + myFunc(2 + 2 /5, true) );
 }

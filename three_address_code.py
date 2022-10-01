@@ -115,7 +115,6 @@ def generate_function_parameters(expression_tokens_list: list[Token], index: int
       if (token_expression_param.token == "COMMA"):
         parseExpression(params)
         temp_params.append(f'param temp{temp_index-1}')
-        print('tipo --> ', temp_list[-1]) 
         if (parameters_type_list[params_index] != temp_list[-1].type):
           raise ParserException(f"Tipo de parâmetro inválido. Esperado {parameters_type_list[params_index]}", line=temp_list[-1].line)
         params = []
@@ -127,7 +126,6 @@ def generate_function_parameters(expression_tokens_list: list[Token], index: int
     # execute the parameter
     parseExpression(params)
     temp_params.append(f'param temp{temp_index-1}')
-    print('tipo --> ', temp_list[-1]) 
     if (parameters_type_list[params_index] != temp_list[-1].type):
       raise ParserException(f"Tipo de parâmetro inválido. Esperado {parameters_type_list[params_index]}", line=temp_list[-1].line)
 
@@ -203,10 +201,12 @@ def parseExpression(expression_tokens_list: list[Token]):
 
   # if exist a parentheses, then we have called parseExpression recursively right up 
   # so we replace the expression from inside ( ) for temp
-  if close_parentheses_index >-1:
-    temp_token = ExpressionToken(lexeme=f'temp{temp_index-1}', token=None, line=None)
+  if close_parentheses_index > -1:
+    expression_token = Token(lexeme = f'temp{temp_index-1}', token=None, line=token.line) # creating temp Token
+    temp_token = ExpressionToken(expression_token, temp_list[-1].type) # converting our temp Token to ExpressionToken
     expression_tokens_list = expression_tokens_list[:open_parentheses_index:] + [temp_token] + expression_tokens_list[close_parentheses_index+1::]
-   
+    
+
   # iterates the operators in the precedence order and generates temps expressions
   for precedence in precedence_operator_order:
     expression_tokens_list = generate_temp_expressions(expression_tokens_list, precedence)
