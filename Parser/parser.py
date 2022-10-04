@@ -477,7 +477,7 @@ class Parser:
         self.is_inside_expression = True 
         self.expression()
         three_addrs_code.parseExpression(self.current_expression_tokens)
-        three_addrs_code.parse_while_command()
+        three_addrs_code.parse_while_command(self.scope_stack[-1])
         self.reset_expression_vars()
         
 
@@ -493,7 +493,7 @@ class Parser:
         if (not self.read_token().token == "CLOSE_BRACKET"): #read }
             raise ParserException(missing_token_exception_message("}"), token.line)
 
-        three_addrs_code.add_while_final_labels()
+        three_addrs_code.add_while_final_labels(self.scope_stack[-1])
         self.scope_stack.pop() # pop from scope stack
          
     def input_command(self): # ok
@@ -524,9 +524,21 @@ class Parser:
         token = self.read_token() #read return
         self.check_valid_scope_return()
 
+        function_symbol = None
+        for symbol in self.symbols_table[::-1]:
+            if (symbol.symbol_id)=="FUNCTION_NAME":
+                function_symbol = symbol
+                break
+
         if(not token.token == "RETURN"):
             raise ParserException(missing_token_exception_message("return"), token.line)
+        
+        self.is_inside_expression = True 
         self.expression()
+        three_addrs_code.parseExpression(self.current_expression_tokens)
+        three_addrs_code.parse_return_command(function_symbol.type)
+        self.reset_expression_vars()
+
         self.semicolon()            
 
     def sub_routine_call(self): # ok

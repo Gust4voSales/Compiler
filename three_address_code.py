@@ -219,6 +219,13 @@ def parse_command(command_str: str):
   global temp_index
   print(command_str.replace("#", "temp"+str(temp_index-1)))
 
+def check_expression_type(type: str):
+  global temp_list
+
+  last_temp = temp_list[-1]
+  if last_temp.type != type:
+    raise ParserException(f"Tipo de atribuição inválida. Esperado {type}", last_temp.line)
+
 def check_expression_bool_type():
   global temp_list
 
@@ -228,22 +235,21 @@ def check_expression_bool_type():
 
 def parse_var_attribution(var_symbol: Symbol):
   global temp_list, temp_index
-  last_temp = temp_list[-1]
-  if last_temp.type != var_symbol.type:
-    raise ParserException(f"Tipo de atribuição inválida. Esperado {var_symbol.type}", last_temp.line)
+  
+  check_expression_type(var_symbol.type)
+
   parse_command(f"{var_symbol.lexeme} = temp{temp_index-1}")
 
-def parse_while_command(): 
-  global while_index, temp_list
+def parse_while_command(scope_id: str): 
+  global temp_list
 
   check_expression_bool_type()
 
-  print(f"w{while_index}: while !temp{temp_index-1} goto fw{while_index}") 
-def add_while_final_labels():
-  global while_index
-  print(f"goto w{while_index}")
-  print(f"fw{while_index}: ", end="")
-  while_index+=1
+  print(f"{scope_id}: if !temp{temp_index-1} goto F{scope_id}") 
+def add_while_final_labels(scope_id: str):
+  print(f"goto {scope_id}")
+  print(f"F{scope_id}: ", end="")
+
 
 
 def parse_if_command(scope_id: str):
@@ -257,8 +263,6 @@ def parse_if_command(scope_id: str):
   
   print(f"A{scope_id}-{if_index[-1]}: ", end ='')
   
-
-
 def parse_else_command(scope_id: str):
   global if_index
   print(f"goto B{scope_id}-{if_index[-1]+1}")
@@ -272,6 +276,11 @@ def add_final_conditional_command(scope_id: str, else_declared: bool):
     print(f"B{scope_id}-{if_index[-1]}: ", end ='')
   
   if_index.pop()
+
+def parse_return_command(function_type: str):
+  check_expression_type(function_type)
+  
+  parse_command(f"return temp{temp_index-1}")
 
 
 
