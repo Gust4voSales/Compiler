@@ -3,11 +3,6 @@ program ola{
   int varInt;
   bool varBool;
 
-  while(true) {
-    if (varInt == 6) {
-      break;
-    } 
-    print(3);
-  }
+  print(varBool);
 
 }

@@ -1,10 +1,2 @@
-temp0 = true
-while-6: if !temp0 goto Fwhile-6
-temp0 = varInt == 6
-if temp0 goto Aif-7-1
-if !temp0 goto Bif-7-1
-Aif-7-1: goto Fwhile-6
-Bif-7-1: temp0 = 3
+temp0 = varBool
 print(temp0)
-goto while-6
-Fwhile-6: 
