@@ -6,7 +6,7 @@ from utils.check_token import is_boolean, is_relation_op, is_number
 
 temp_index = 0
 while_index = 0
-if_index = 0
+if_index = [0]
 temp_list: list[ExpressionToken] = []
 
 # get the type operation related with the operator
@@ -239,25 +239,28 @@ def add_while_final_labels():
 
 def parse_if_command(scope_id: str):
   global if_index
-  print(f"if temp{temp_index} goto A{scope_id}-{if_index}")
-  print(f"if !temp{temp_index} goto B{scope_id}-{if_index}")
+  if_index.append(if_index[-1]+1)
+
+  print(f"if temp{temp_index} goto A{scope_id}-{if_index[-1]}")
+  print(f"if !temp{temp_index} goto B{scope_id}-{if_index[-1]}")
   
-  print(f"A{scope_id}-{if_index}: ", end ='')
+  print(f"A{scope_id}-{if_index[-1]}: ", end ='')
   
 
 
 def parse_else_command(scope_id: str):
   global if_index
-  print(f"goto B{scope_id}-{if_index+1}")
-  print(f"B{scope_id}-{if_index}: ", end ='')
+  print(f"goto B{scope_id}-{if_index[-1]+1}")
+  print(f"B{scope_id}-{if_index[-1]}: ", end ='')
 
 def add_final_conditional_command(scope_id: str, else_declared: bool):
   global if_index
   if (else_declared):
-    print(f"B{scope_id}-{if_index+1}: ", end ='')
+    print(f"B{scope_id}-{if_index[-1]+1}: ", end ='')
   else:
-    print(f"B{scope_id}-{if_index}: ", end ='')
-  if_index += 1
+    print(f"B{scope_id}-{if_index[-1]}: ", end ='')
+  
+  if_index.pop()
 
 
 
