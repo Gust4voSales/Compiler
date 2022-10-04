@@ -329,6 +329,8 @@ class Parser:
         self.check_unique_symbol_scope()
         self.push_new_scope(identifier) # add to scope stack
 
+        three_addrs_code.parse_subroutine(identifier.lexeme)
+
         token = self.read_token() # read (
         if (not token.token == "OPEN_PARENTHESES"):
             raise ParserException(missing_token_exception_message("("), token.line)
@@ -364,6 +366,8 @@ class Parser:
         self.set_symbol_type(type_token.token)
         self.check_unique_symbol_scope()
         self.push_new_scope(identifier) # add to scope stack
+
+        three_addrs_code.parse_subroutine(identifier.lexeme)
 
         token = self.read_token() # read (
         if (not token.token == "OPEN_PARENTHESES"):

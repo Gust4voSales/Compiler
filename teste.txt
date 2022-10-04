@@ -3,18 +3,14 @@ program ola{
   int varInt;
   bool varBool;
 
-  while(true) {
-    print(2);
-
-    continue;
-
-    print(2);
-
-    while(true) {
-      print(2);
-      break;
-      print(65);
-    }
+  func int f(int x) {
+    print(x);
+    return 2 +2 ;
+  }
+  proc p(int x) {
+    print(x);
   }
 
+  f(2);
+  p(true);
 }

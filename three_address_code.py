@@ -286,17 +286,8 @@ def parse_return_command(function_type: str):
   
   parse_command(f"return temp{temp_index-1}")
 
-
-
-
-
-
-
-
-  
-
-
-
+def parse_subroutine(subroutine_identifier: str):
+  print(f"{subroutine_identifier}: ", end="")
 
 def reset():
   global temp_index, temp_list
