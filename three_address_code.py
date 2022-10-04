@@ -219,6 +219,12 @@ def parse_command(command_str: str):
   global temp_index
   print(command_str.replace("#", "temp"+str(temp_index-1)))
 
+def check_expression_bool_type():
+  global temp_list
+
+  last_temp = temp_list[-1]
+  if last_temp.type != "BOOL_TYPE":
+    raise ParserException(f"Expressão inválida. Esperado tipo booleano", last_temp.line)
 
 def parse_var_attribution(var_symbol: Symbol):
   global temp_list, temp_index
@@ -228,7 +234,10 @@ def parse_var_attribution(var_symbol: Symbol):
   parse_command(f"{var_symbol.lexeme} = temp{temp_index-1}")
 
 def parse_while_command(): 
-  global while_index
+  global while_index, temp_list
+
+  check_expression_bool_type()
+
   print(f"w{while_index}: while !temp{temp_index-1} goto fw{while_index}") 
 def add_while_final_labels():
   global while_index
@@ -240,6 +249,8 @@ def add_while_final_labels():
 def parse_if_command(scope_id: str):
   global if_index
   if_index.append(if_index[-1]+1)
+
+  check_expression_bool_type()
 
   print(f"if temp{temp_index} goto A{scope_id}-{if_index[-1]}")
   print(f"if !temp{temp_index} goto B{scope_id}-{if_index[-1]}")

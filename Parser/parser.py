@@ -206,7 +206,8 @@ class Parser:
         elif(is_identifier(token) and self.look_ahead().token == "OPEN_PARENTHESES"):
             self.set_symbol_id("FUNCTION_NAME")
             symbol = self.get_symbol_from_identifier(token.lexeme)
-            self.set_symbol_type(symbol.type)
+            if (symbol):
+                self.set_symbol_type(symbol.type)
 
             self.function_call(True)
             function_call = True
@@ -609,6 +610,8 @@ class Parser:
         self.is_inside_expression = True 
         self.expression()
         three_addrs_code.parseExpression(self.current_expression_tokens)
+
+        three_addrs_code.parse_if_command(conditional_scope)
         self.reset_expression_vars()
         
 
@@ -618,7 +621,6 @@ class Parser:
         if (not self.read_token().token == "OPEN_BRACKET"): #read {
             raise ParserException(missing_token_exception_message("{"), token.line)
         
-        three_addrs_code.parse_if_command(conditional_scope)
         self.var_declaration_block()
         self.commands()
 

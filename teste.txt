@@ -3,16 +3,23 @@ program ola{
   int varInt;
   bool varBool;
 
-
-if (varInt <= 2 ){
-
-  print(2);
-
-} else {
-  if (true) {
-    print(3);
+  func int myFunc(int x) {
+    return 1;
   }
-  print(4);
-}
+
+  while(true) {
+    print(2);
+  }
+
+  if (2){
+
+    print(2);
+
+  } else {
+    if (true) {
+      print(3);
+    }
+    print(4);
+  }
  
 }
