@@ -18,6 +18,7 @@ class Parser:
     
     # ---------START 3-ADDRESS-CODE FUNCTIONS---------
     def reset_expression_vars(self):
+        three_addrs_code.reset()
         self.is_inside_expression = False
         self.current_expression_tokens = []
     
@@ -39,6 +40,18 @@ class Parser:
 
     def set_symbol_type(self, type: str):
         self.symbols_table[self.current_symbol_index].type = type
+
+    def get_symbol_from_identifier(self, idetifier:str):
+        
+        actual_scope = self.scope_stack[-1]
+
+        sliced_symbols_reversed = self.symbols_table[:self.current_symbol_index][::-1]
+
+        for symbol in sliced_symbols_reversed:
+            if (symbol.lexeme==idetifier and symbol.scope == actual_scope):
+                return symbol
+        return None
+
     # ---------END SYMBOL TABLE FUNCTIONS---------
 
     # ---------SCOPE FUNCTIONS---------
@@ -98,7 +111,7 @@ class Parser:
 
     # helper function to check (based on id) if sub_routine is a function or a procedure when called to put correct type
     # in symbols table
-    def get_symbol_from_identifier(self, identifier: str):
+    def get_symbol_with_same_identifier(self, identifier: str):
         for symbol in self.symbols_table:
             if (symbol.lexeme == identifier):
                 return symbol
@@ -112,7 +125,7 @@ class Parser:
             return token
         else:
             self.current_token_index -= quantity
-            return Token(token='EMPTY', lexeme='', line=-99999)
+            return Token(token='EMPTY', lexeme='', line=0)
 
     def read_token(self):
         self.current_token_index += 1
@@ -121,7 +134,7 @@ class Parser:
             
             if (self.is_inside_expression):
                 if is_identifier(token):
-                    symbol = self.get_symbol_from_identifier(token.lexeme)
+                    symbol = self.get_symbol_with_same_identifier(token.lexeme)
                     if symbol.symbol_id == "FUNCTION_NAME" or symbol.symbol_id == "PROCEDURE_NAME":
                         self.current_expression_tokens.append(ExpressionToken(token,self.get_identifier_type_from_token(token), symbol.parameters_type))
                     else:
@@ -191,12 +204,16 @@ class Parser:
             if (not (token.lexeme==')')):
                 raise ParserException(missing_token_exception_message(")"), token.line)
         elif(is_identifier(token) and self.look_ahead().token == "OPEN_PARENTHESES"):
+            self.set_symbol_id("FUNCTION_NAME")
+            symbol = self.get_symbol_from_identifier(token.lexeme)
+            self.set_symbol_type(symbol.type)
+
             self.function_call(True)
             function_call = True
         elif (not (is_identifier(token) or is_number(token) or is_boolean(token)) ):
             raise ParserException('Faltou fator', token.line)
         
-        if (not function_call and is_identifier(token)): # a variable identifier was used
+        if (not function_call and is_identifier(token)): # a variable identifier was used    
             self.set_symbol_id("VARIABLE_NAME")
             self.set_valid_identifier_scope()
         
@@ -402,9 +419,13 @@ class Parser:
             raise ParserException(f"Comando \"{look_ahead_token.lexeme}\" inválido", look_ahead_token.line)
 
     def var_attribution(self): # ok
-        self.identifier()
+        token_identifier =self.identifier()
+        symbol = self.get_symbol_from_identifier(token_identifier.lexeme)
+
         self.set_symbol_id("VARIABLE_NAME")
         self.set_valid_identifier_scope()
+
+        self.set_symbol_type(symbol.type)
 
         assign_op = self.read_token() # read =
         if (not (assign_op.token == 'ASSIGNMENT_OP')):
@@ -412,8 +433,13 @@ class Parser:
         
         if(self.look_ahead().token == "INPUT_FUNC"):
             self.input_command()
+            three_addrs_code.parse_command(f"{token_identifier.lexeme} = input()")
         else:
+            self.is_inside_expression = True 
             self.expression()
+            three_addrs_code.parseExpression(self.current_expression_tokens)    
+            three_addrs_code.parse_var_attribution(symbol)
+            self.reset_expression_vars()
             self.semicolon()
 
     def print_command(self): # ok
@@ -429,6 +455,7 @@ class Parser:
         self.is_inside_expression = True 
         self.expression()
         three_addrs_code.parseExpression(self.current_expression_tokens)
+        three_addrs_code.parse_command("print(#)")
         self.reset_expression_vars()
 
         if (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
@@ -437,7 +464,7 @@ class Parser:
         self.semicolon()
 
     def while_command(self): # ok
-        token = self.read_token() #read while
+        token = self.read_token() #read while   
 
         self.push_new_scope(token) # add to scope stack
 
@@ -446,7 +473,12 @@ class Parser:
         elif(not self.read_token().token == "OPEN_PARENTHESES"): #read (
             raise ParserException(missing_token_exception_message("("), token.line)
 
+        self.is_inside_expression = True 
         self.expression()
+        three_addrs_code.parseExpression(self.current_expression_tokens)
+        three_addrs_code.parse_while_command()
+        self.reset_expression_vars()
+        
 
         if (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
             raise ParserException(missing_token_exception_message(")"), token.line)
@@ -460,6 +492,7 @@ class Parser:
         if (not self.read_token().token == "CLOSE_BRACKET"): #read }
             raise ParserException(missing_token_exception_message("}"), token.line)
 
+        three_addrs_code.add_while_final_labels()
         self.scope_stack.pop() # pop from scope stack
          
     def input_command(self): # ok
@@ -497,8 +530,9 @@ class Parser:
 
     def sub_routine_call(self): # ok
         subroutine_identifier = self.identifier()
-        sub_routine_type = self.get_symbol_from_identifier(self.tokens[self.current_token_index].lexeme).symbol_id
-        self.set_symbol_id(sub_routine_type)
+        sub_routine_symbol = self.get_symbol_with_same_identifier(self.tokens[self.current_token_index].lexeme)
+        self.set_symbol_id(sub_routine_symbol.symbol_id)
+        self.set_symbol_type(sub_routine_symbol.type)
         self.set_valid_identifier_scope()
 
         token = self.read_token() # read (
@@ -519,7 +553,7 @@ class Parser:
             if (not look_ahead.token == 'CLOSE_PARENTHESES'):
                 raise ParserException(missing_token_exception_message(")"), token.line)
 
-        subroutine_symbol = self.get_symbol_from_identifier(subroutine_identifier.lexeme)
+        subroutine_symbol = self.get_symbol_with_same_identifier(subroutine_identifier.lexeme)
         if (parameters_counter != len(subroutine_symbol.parameters_type)):
             raise ParserException("Quantidade de parâmetros passados diferentes da declaração", subroutine_identifier.line)
         self.semicolon()
@@ -527,8 +561,12 @@ class Parser:
     # only being called inside expression because outside an expression functions are called through sub_routine_call
     def function_call(self, in_expression = False): # ok 
         if not in_expression:
-            self.identifier()
-        self.set_symbol_id("FUNCTION_NAME")
+            token_identifier = self.identifier()
+            self.set_symbol_id("FUNCTION_NAME")
+            symbol = self.get_symbol_from_identifier(token_identifier.lexeme)
+            self.set_symbol_type(symbol.type)
+
+       
         self.set_valid_identifier_scope()
         subroutine_identifier = self.symbols_table[self.current_symbol_index]
 
@@ -550,7 +588,7 @@ class Parser:
             if (not look_ahead.token == 'CLOSE_PARENTHESES'):
                 raise ParserException(missing_token_exception_message(")"), token.line)
 
-        subroutine_symbol = self.get_symbol_from_identifier(subroutine_identifier.lexeme)
+        subroutine_symbol = self.get_symbol_with_same_identifier(subroutine_identifier.lexeme)
         if (parameters_counter != len(subroutine_symbol.parameters_type)):
             raise ParserException("Quantidade de parâmetros passados diferentes da declaração", subroutine_identifier.line)
 
@@ -561,13 +599,18 @@ class Parser:
         token = self.read_token() #read if
         
         self.push_new_scope(token) # add to scope stack 
+        conditional_scope = self.scope_stack[-1]
 
         if(not token.token == "IF"): 
             raise ParserException(f"Verificação com look ahaed???", token.line)
         elif(not self.read_token().token == "OPEN_PARENTHESES"): #read (
             raise ParserException(missing_token_exception_message("("), token.line)
 
+        self.is_inside_expression = True 
         self.expression()
+        three_addrs_code.parseExpression(self.current_expression_tokens)
+        self.reset_expression_vars()
+        
 
         if (not self.read_token().token == "CLOSE_PARENTHESES"): #read )
             raise ParserException(missing_token_exception_message(")"), token.line)
@@ -575,6 +618,7 @@ class Parser:
         if (not self.read_token().token == "OPEN_BRACKET"): #read {
             raise ParserException(missing_token_exception_message("{"), token.line)
         
+        three_addrs_code.parse_if_command(conditional_scope)
         self.var_declaration_block()
         self.commands()
 
@@ -582,21 +626,28 @@ class Parser:
             raise ParserException(missing_token_exception_message("}"), token.line)
         
         self.scope_stack.pop() # pop from scope stack
+        
 
-        if (self.look_ahead().token == "ELSE"):
+        if (self.look_ahead().token == "ELSE"):            
             token = self.read_token() # read else
+
             self.push_new_scope(token) # add to scope stack
 
             if (not self.read_token().token == "OPEN_BRACKET"): #read {
                 raise ParserException(missing_token_exception_message("{"), token.line)
             
+            three_addrs_code.parse_else_command(conditional_scope)
             self.var_declaration_block()
             self.commands()
 
             if (not self.read_token().token == "CLOSE_BRACKET"): #read }
                 raise ParserException(missing_token_exception_message("}"), token.line)
             
+            three_addrs_code.add_final_conditional_command(conditional_scope, True)
             self.scope_stack.pop()
+        else:
+            three_addrs_code.add_final_conditional_command(conditional_scope, False)
+        
 
     # --------END COMMAND--------
     

@@ -1,9 +1,12 @@
 from ExpressionToken import ExpressionToken
 from Parser.ParserException import ParserException
+from Symbol import Symbol
 from Token import Token
 from utils.check_token import is_boolean, is_relation_op, is_number
 
 temp_index = 0
+while_index = 0
+if_index = 0
 temp_list: list[ExpressionToken] = []
 
 # get the type operation related with the operator
@@ -210,6 +213,68 @@ def parseExpression(expression_tokens_list: list[Token]):
   # iterates the operators in the precedence order and generates temps expressions
   for precedence in precedence_operator_order:
     expression_tokens_list = generate_temp_expressions(expression_tokens_list, precedence)
+
+
+def parse_command(command_str: str):
+  global temp_index
+  print(command_str.replace("#", "temp"+str(temp_index-1)))
+
+
+def parse_var_attribution(var_symbol: Symbol):
+  global temp_list, temp_index
+  last_temp = temp_list[-1]
+  if last_temp.type != var_symbol.type:
+    raise ParserException(f"Tipo de atribuição inválida. Esperado {var_symbol.type}", last_temp.line)
+  parse_command(f"{var_symbol.lexeme} = temp{temp_index-1}")
+
+def parse_while_command(): 
+  global while_index
+  print(f"w{while_index}: while !temp{temp_index-1} goto fw{while_index}") 
+def add_while_final_labels():
+  global while_index
+  print(f"goto w{while_index}")
+  print(f"fw{while_index}: ", end="")
+  while_index+=1
+
+
+def parse_if_command(scope_id: str):
+  global if_index
+  print(f"if temp{temp_index} goto A{scope_id}-{if_index}")
+  print(f"if !temp{temp_index} goto B{scope_id}-{if_index}")
+  
+  print(f"A{scope_id}-{if_index}: ", end ='')
+  
+
+
+def parse_else_command(scope_id: str):
+  global if_index
+  print(f"goto B{scope_id}-{if_index+1}")
+  print(f"B{scope_id}-{if_index}: ", end ='')
+
+def add_final_conditional_command(scope_id: str, else_declared: bool):
+  global if_index
+  if (else_declared):
+    print(f"B{scope_id}-{if_index+1}: ", end ='')
+  else:
+    print(f"B{scope_id}-{if_index}: ", end ='')
+  if_index += 1
+
+
+
+
+
+
+
+
+  
+
+
+
+
+def reset():
+  global temp_index, temp_list
+  temp_index = 0
+  temp_list = []
 
 
  
