@@ -250,6 +250,10 @@ def add_while_final_labels(scope_id: str):
   print(f"goto {scope_id}")
   print(f"F{scope_id}: ", end="")
 
+def parse_continue_command(scope_id: str):
+  print(f"goto {scope_id}")
+def parse_break_command(scope_id: str):
+  print(f"goto F{scope_id}")
 
 
 def parse_if_command(scope_id: str):

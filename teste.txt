@@ -6,9 +6,15 @@ program ola{
   while(true) {
     print(2);
 
+    continue;
+
+    print(2);
+
     while(true) {
-      print(3);
+      print(2);
+      break;
+      print(65);
     }
   }
-  continue;
+
 }

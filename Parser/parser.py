@@ -87,6 +87,16 @@ class Parser:
                 return True
         return False
 
+    def get_last_while_scope(self):
+        for scope in self.scope_stack[::-1]: 
+            if 'while' in scope:
+                return scope
+        
+        return None
+
+    def check_loop_only_command(self, token: Token):
+        if self.get_last_while_scope() == None:
+            raise ParserException(f"Comando {token.lexeme} utilizado fora de um loop.", line=token.line)
     # check if the return is outside a function, then throws an error
     def check_valid_scope_return(self):
         fuction_scope_found = False
@@ -512,12 +522,20 @@ class Parser:
         token = self.read_token() #read break
         if(not token.token == "BREAK"):
             raise ParserException(f"Verificação com look ahaed???", token.line)
+
+        self.check_loop_only_command(token)
+        three_addrs_code.parse_break_command(self.get_last_while_scope())
+        
         self.semicolon()
 
     def continue_command(self): # ok
         token = self.read_token() #read continue
         if(not token.token == "CONTINUE"):
             raise ParserException(f"Verificação com look ahaed???", token.line)
+        
+        self.check_loop_only_command(token)
+        three_addrs_code.parse_continue_command(self.get_last_while_scope())
+
         self.semicolon()
 
     def return_command(self): # ok
