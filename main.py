@@ -2,6 +2,7 @@ from Lexer.LexerException import LexerException
 from Lexer.lexer import Lexer
 from Parser.ParserException import ParserException
 from Parser.parser import Parser
+import os
 
 class bcolors:
   HEADER = '\033[95m'
@@ -18,6 +19,10 @@ raw_code = ''
 
 with open('teste.txt', 'r') as f:
   raw_code = f.read()
+
+if os.path.exists("3-address-code.txt"):
+  os.remove("3-address-code.txt")
+
 
 try:
   lexer = Lexer(raw_code)

@@ -9,6 +9,11 @@ while_index = 0
 if_index = [0]
 temp_list: list[ExpressionToken] = []
 
+
+def write_to_file(string: str, end='\n'):
+  with open('3-address-code.txt', 'a') as f:
+    f.write(string+end)
+
 # get the type operation related with the operator
 def get_operator_type(operator: Token):
   # arithmetics and relation operations
@@ -54,10 +59,10 @@ def generate_temp_expressions(expression_tokens_list: list[Token], precedence_op
   if len(expression_tokens_list)==1 and 'temp' in expression_tokens_list[0].lexeme and expression_tokens_list[0].token == None:
     return []
 
-  # expression of only one factor. Eg.: print(2);
+  # expression of only one factor. Eg.: z= 2;
   if (len(expression_tokens_list)==1):
     token = expression_tokens_list[0]
-    print(f'temp{temp_index} = {token.lexeme}')
+    write_to_file(f'temp{temp_index} = {token.lexeme}')
     
     if (is_number(token)):
       temp_list.append(ExpressionToken(token=token, type="INT_TYPE")) # add temp ExpressionToken to our temp_list
@@ -77,7 +82,7 @@ def generate_temp_expressions(expression_tokens_list: list[Token], precedence_op
       # temp = <PREVIOUS_TOKEN> <OPERATOR> <NEXT_TOKEN>
       # eg.: calling generate_temp_expressions with 2+2*5 and the precedence_operator='*' 
       # we're going to write -> temp = 2*5
-      print(f'temp{temp_index} = {op1.lexeme} {token.lexeme} {op2.lexeme}')
+      write_to_file(f'temp{temp_index} = {op1.lexeme} {token.lexeme} {op2.lexeme}')
 
       # we used the previous token in this expression, so we need to delete it from new_expressions_tokens_list
       del new_expressions_tokens_list[-1]
@@ -146,9 +151,9 @@ def generate_function_call(expression_tokens_list: list[Token]):
         temp_params = generate_function_parameters(expression_tokens_list, index, token.parameters_type)
 
         # execute function and replace its call for temp
-        for temp_param in temp_params: # for i in temp_params print param temp_i (used to call the function)
-          print(temp_param)
-        print(f"temp{temp_index} = call {token.lexeme}, {len(temp_params)}")
+        for temp_param in temp_params: # for i in temp_params write_to_file param temp_i (used to call the function)
+          write_to_file(temp_param)
+        write_to_file(f"temp{temp_index} = call {token.lexeme}, {len(temp_params)}")
         
         expression_token = Token(lexeme = f'temp{temp_index}', token=None, line=token.line) # creating temp Token
         temp_token = ExpressionToken(expression_token, token.type) # converting our temp Token to ExpressionToken
@@ -217,7 +222,7 @@ def parseExpression(expression_tokens_list: list[Token]):
 
 def parse_command(command_str: str):
   global temp_index
-  print(command_str.replace("#", "temp"+str(temp_index-1)))
+  write_to_file(command_str.replace("#", "temp"+str(temp_index-1)))
 
 def check_expression_type(type: str):
   global temp_list
@@ -245,15 +250,15 @@ def parse_while_command(scope_id: str):
 
   check_expression_bool_type()
 
-  print(f"{scope_id}: if !temp{temp_index-1} goto F{scope_id}") 
+  write_to_file(f"{scope_id}: if !temp{temp_index-1} goto F{scope_id}") 
 def add_while_final_labels(scope_id: str):
-  print(f"goto {scope_id}")
-  print(f"F{scope_id}: ", end="")
+  write_to_file(f"goto {scope_id}")
+  write_to_file(f"F{scope_id}: ", end="")
 
 def parse_continue_command(scope_id: str):
-  print(f"goto {scope_id}")
+  write_to_file(f"goto {scope_id}")
 def parse_break_command(scope_id: str):
-  print(f"goto F{scope_id}")
+  write_to_file(f"goto F{scope_id}")
 
 
 def parse_if_command(scope_id: str):
@@ -262,22 +267,22 @@ def parse_if_command(scope_id: str):
 
   check_expression_bool_type()
 
-  print(f"if temp{temp_index} goto A{scope_id}-{if_index[-1]}")
-  print(f"if !temp{temp_index} goto B{scope_id}-{if_index[-1]}")
+  write_to_file(f"if temp{temp_index-1} goto A{scope_id}-{if_index[-1]}")
+  write_to_file(f"if !temp{temp_index-1} goto B{scope_id}-{if_index[-1]}")
   
-  print(f"A{scope_id}-{if_index[-1]}: ", end ='')
+  write_to_file(f"A{scope_id}-{if_index[-1]}: ", end ='')
   
 def parse_else_command(scope_id: str):
   global if_index
-  print(f"goto B{scope_id}-{if_index[-1]+1}")
-  print(f"B{scope_id}-{if_index[-1]}: ", end ='')
+  write_to_file(f"goto B{scope_id}-{if_index[-1]+1}")
+  write_to_file(f"B{scope_id}-{if_index[-1]}: ", end ='')
 
 def add_final_conditional_command(scope_id: str, else_declared: bool):
   global if_index
   if (else_declared):
-    print(f"B{scope_id}-{if_index[-1]+1}: ", end ='')
+    write_to_file(f"B{scope_id}-{if_index[-1]+1}: ", end ='')
   else:
-    print(f"B{scope_id}-{if_index[-1]}: ", end ='')
+    write_to_file(f"B{scope_id}-{if_index[-1]}: ", end ='')
   
   if_index.pop()
 
@@ -287,7 +292,7 @@ def parse_return_command(function_type: str):
   parse_command(f"return temp{temp_index-1}")
 
 def parse_subroutine(subroutine_identifier: str):
-  print(f"{subroutine_identifier}: ", end="")
+  write_to_file(f"{subroutine_identifier}: ", end="")
 
 def reset():
   global temp_index, temp_list

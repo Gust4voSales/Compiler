@@ -3,14 +3,11 @@ program ola{
   int varInt;
   bool varBool;
 
-  func int f(int x) {
-    print(x);
-    return 2 +2 ;
-  }
-  proc p(int x) {
-    print(x);
+  while(true) {
+    if (varInt == 6) {
+      break;
+    } 
+    print(3);
   }
 
-  f(2);
-  p(true);
 }

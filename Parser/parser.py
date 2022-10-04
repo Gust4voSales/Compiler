@@ -14,7 +14,9 @@ class Parser:
         self.scope_stack = []    
 
         self.is_inside_expression = False
+        self.is_inside_subroutine_call = False
         self.current_expression_tokens = []
+        self.current_subroutine_tokens = []
     
     # ---------START 3-ADDRESS-CODE FUNCTIONS---------
     def reset_expression_vars(self):
@@ -151,12 +153,21 @@ class Parser:
                         self.current_expression_tokens.append(ExpressionToken(token,self.get_identifier_type_from_token(token)))
                 else:
                     self.current_expression_tokens.append(ExpressionToken(token))
-                
+            
+            if (self.is_inside_subroutine_call):
+                if is_identifier(token):
+                    symbol = self.get_symbol_with_same_identifier(token.lexeme)
+                    if symbol.symbol_id == "FUNCTION_NAME" or symbol.symbol_id == "PROCEDURE_NAME":
+                        self.current_subroutine_tokens.append(ExpressionToken(token,self.get_identifier_type_from_token(token), symbol.parameters_type))
+                    else:
+                        self.current_subroutine_tokens.append(ExpressionToken(token,self.get_identifier_type_from_token(token)))
+                else:
+                    self.current_subroutine_tokens.append(ExpressionToken(token))
 
             return token 
         else:
             self.current_token_index -= 1
-            return Token(token='EMPTY', lexeme='', line=-99999)
+            return Token(token='EMPTY', lexeme='', line=0)
 
     def semicolon(self): #ok
         token = self.read_token()
@@ -564,6 +575,8 @@ class Parser:
         self.semicolon()            
 
     def sub_routine_call(self): # ok
+        self.is_inside_subroutine_call = True
+        
         subroutine_identifier = self.identifier()
         sub_routine_symbol = self.get_symbol_with_same_identifier(self.tokens[self.current_token_index].lexeme)
         self.set_symbol_id(sub_routine_symbol.symbol_id)
@@ -591,11 +604,18 @@ class Parser:
         subroutine_symbol = self.get_symbol_with_same_identifier(subroutine_identifier.lexeme)
         if (parameters_counter != len(subroutine_symbol.parameters_type)):
             raise ParserException("Quantidade de parâmetros passados diferentes da declaração", subroutine_identifier.line)
+        
+        self.is_inside_subroutine_call = False
+        three_addrs_code.generate_function_call(self.current_subroutine_tokens)
+        self.current_subroutine_tokens = []
+        three_addrs_code.reset()
+        
         self.semicolon()
 
     # only being called inside expression because outside an expression functions are called through sub_routine_call
     def function_call(self, in_expression = False): # ok 
         if not in_expression:
+            self.is_inside_subroutine_call = True
             token_identifier = self.identifier()
             self.set_symbol_id("FUNCTION_NAME")
             symbol = self.get_symbol_from_identifier(token_identifier.lexeme)
@@ -606,6 +626,7 @@ class Parser:
         subroutine_identifier = self.symbols_table[self.current_symbol_index]
 
         token = self.read_token() # read (
+
         if (not token.token == 'OPEN_PARENTHESES'):
             raise ParserException(missing_token_exception_message("("), token.line)
 
@@ -628,6 +649,9 @@ class Parser:
             raise ParserException("Quantidade de parâmetros passados diferentes da declaração", subroutine_identifier.line)
 
         if(not in_expression):
+            self.is_inside_subroutine_call = False
+            three_addrs_code.generate_function_call(self.current_subroutine_tokens)
+            self.current_subroutine_tokens = []
             self.semicolon()
 
     def conditional_command(self): # ok
